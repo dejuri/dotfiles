@@ -554,39 +554,33 @@ Item {
                             id: controlCenterColumn
                             width: parent.width
                             spacing: 10
-                            Rectangle {
-                                width: parent.width
-                                height: 0.03 * Screen.height
-                                color: Theme.mid
-                                radius: 15
                                 Column {
                                     width: parent.width
                                     spacing: 4
-                                    Text {
-                                        text: Pipewire.defaultAudioSink?.audio?.muted ? "󰖁 няма" : "󰕾 " + Math.round(currentVolume * 100) + "%"
-                                        font.family: "FiraMono Nerd Font"
-                                        color: Theme.text
-                                        x: (parent.width - width) / 2
-                                        font.pixelSize: 0.0115 * Screen.height
-                                    }
+                                    Rectangle {
+                                    width: parent.width
+                                    height: 0.03 * Screen.height
+                                    color: Theme.mid
+                                    radius: 25
                                     Rectangle {
                                         id: ccVolumeBar
-                                        width: parent.width - 20
-                                        x: 10
-                                        height: 0.008 * Screen.height
-                                        radius: 4
-                                        color: Theme.background
+                                        width: parent.width
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        height: 0.03 * Screen.height
+                                        radius: 25
+                                        color: Theme.mid
                                         Rectangle {
                                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-                                            width: parent.width * currentVolume
-                                            radius: 4
-                                            color: Theme.lightest
+                                            width: (parent.width * currentVolume + 0.1) / 1.11 + 40
+                                            radius: 25
+                                            color: Theme.primary
                                             Behavior on width { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
                                         }
                                         MouseArea {
                                             anchors.fill: parent
                                             cursorShape: Qt.PointingHandCursor
-                                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                            acceptedButtons: Qt.LeftButton
                                             function setFromX(x) {
                                                 let v = Math.max(0, Math.min(1, x / ccVolumeBar.width))
                                                 if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio)
@@ -594,6 +588,14 @@ Item {
                                             }
                                             onPressed: (mouse) => setFromX(mouse.x)
                                             onPositionChanged: (mouse) => { if (pressed) setFromX(mouse.x) }
+                                        }
+                                        Text {
+                                            text: Pipewire.defaultAudioSink?.audio?.muted ? "󰖁" : "󰕾"
+                                            font.family: "FiraMono Nerd Font"
+                                            color: Theme.background
+                                            x: 10
+                                            y: 10
+                                            font.pixelSize: 0.0115 * Screen.height
                                         }
                                     }
                                 }
@@ -608,11 +610,12 @@ Item {
                                     width: parent.width
                                     Text {
                                         width: parent.width - wifiRow2.width
-                                        text: wifiRadioEnabled ? "󰤨 Wi-Fi" : "󰤭 Wi-Fi (вимкнено)"
+                                        text: "󰤨 Wi-Fi"
                                         font.family: "FiraMono Nerd Font"
                                         color: Theme.text
                                         font.pixelSize: 0.0115 * Screen.height
                                     }
+
                                     Row {
                                         id: wifiRow2
                                         spacing: 4
@@ -746,7 +749,7 @@ Item {
                                     width: parent.width
                                     Text {
                                         width: parent.width - btRow2.width
-                                        text: bluetoothRadioEnabled ? "󰂯 Bluetooth" : "󰂲 Bluetooth (вимкнено)"
+                                        text: "󰂯 Bluetooth"
                                         font.family: "FiraMono Nerd Font"
                                         color: Theme.text
                                         font.pixelSize: 0.0115 * Screen.height
@@ -820,14 +823,14 @@ Item {
                                         }
                                     }
                                 }
-                                Text {
-                                    visible: btDevicesModel.count === 0
-                                    text: "No devices."
-                                    color: Theme.text
-                                    font.pixelSize: 0.0095 * Screen.height
-                                    width: parent.width
-                                    wrapMode: Text.WordWrap
-                                }
+                                // Text {
+                                //     visible: btDevicesModel.count === 0
+                                //     text: "No devices."
+                                //     color: Theme.text
+                                //     font.pixelSize: 0.0095 * Screen.height
+                                //     width: parent.width
+                                //     wrapMode: Text.WordWrap
+                                // }
                             }
                         }
                     }
