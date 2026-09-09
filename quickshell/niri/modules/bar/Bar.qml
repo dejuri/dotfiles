@@ -311,9 +311,9 @@ Item {
         }
         Item {
             id: menuContainer
-            property var rebootProcess: Process { command: ["sh", "-c", "loginctl reboot"] }
+            property var rebootProcess: Process { command: ["sh", "-c", "reboot"] }
             property var logoutProcess: Process { command: ["sh", "-c", "niri msg action quit"] }
-            property var poweroffProcess: Process { command: ["sh", "-c", "loginctl poweroff"] }
+            property var poweroffProcess: Process { command: ["sh", "-c", "poweroff"] }
             property var hyprlockProcess: Process { command: ["sh", "-c", "hyprlock"] }
             width: parent.width
             height: parent.height
