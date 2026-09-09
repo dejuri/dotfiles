@@ -1,0 +1,14 @@
+* {
+    background-color: rgba(255, 0, 0, 0.8); /* Red with 80% opacity */
+    text-color: white;
+    selected-normal-background: red;
+    selected-normal-foreground: white;
+}
+
+entry {
+    text-color: white;
+}
+
+element-text {
+    text-color: white;
+}

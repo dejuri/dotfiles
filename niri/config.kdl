@@ -150,7 +150,7 @@ layout {
     insert-hint {
         // off
         on
-        color "#8f885050"
+        color "#AFBB7050"
         // gradient from="#ffbb6680" to="#ffc88080" angle=45 relative-to="workspace-view"
     }
 

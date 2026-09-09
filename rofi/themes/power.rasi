@@ -1,0 +1,37 @@
+window {
+  anchor: east;
+  location: east;
+  x-offset: -20;
+  y-offset: -500;
+  width: 25%;
+  padding: 15px;
+  border: 2px;
+  border-color: #f7768e;
+  background-color: #1e1e2e;
+}
+
+mainbox {
+  padding: 10px;
+}
+
+listview {
+  spacing: 10px;
+  lines: 6;
+}
+
+element {
+  padding: 6px;
+  border-radius: 6px;
+  background-color: transparent;
+  text-color: #c0caf5;
+}
+
+element selected {
+  background-color: #f7768e;
+  text-color: #1e1e2e;
+}
+
+textbox {
+  font: "Agave Nerd Font Mono 14";
+  text-color: #c0caf5;
+}
