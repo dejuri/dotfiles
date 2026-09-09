@@ -582,7 +582,6 @@ Item {
                                             width: (parent.width * currentVolume + 0.1) / 1.11 + 40
                                             radius: 25
                                             color: Theme.primary
-                                            Behavior on width { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
                                         }
                                         MouseArea {
                                             anchors.fill: parent
