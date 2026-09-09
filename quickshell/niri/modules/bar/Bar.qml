@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQml.Models
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -9,7 +10,14 @@ import qs.services
 import "../theme"
 
 Item {
+
+// CONTROL CENTER
     property real currentVolume: Pipewire.defaultAudioSink?.audio?.volume ?? 0
+    property bool wifiRadioEnabled: true
+    property bool bluetoothRadioEnabled: false
+    property string wifiPasswordTarget: ""
+    property string wifiPasswordText: ""
+
     Connections {
         target: Pipewire.defaultAudioSink?.audio
         function onVolumeChanged() {
@@ -17,6 +25,252 @@ Item {
         }
     }
     Process { id: commandRunner }
+
+    ListModel { id: wifiNetworksModel }
+    Process {
+        id: wifiRadioStatusProc
+        command: ["nmcli", "radio", "wifi"]
+        stdout: SplitParser {
+            onRead: (data) => { wifiRadioEnabled = data.trim() === "enabled" }
+        }
+    }
+    Process {
+        id: wifiListProc
+        command: ["nmcli", "-t", "-f", "IN-USE,SIGNAL,SECURITY,SSID", "dev", "wifi", "list"]
+        onRunningChanged: if (running) wifiNetworksModel.clear()
+        stdout: SplitParser {
+            onRead: (data) => {
+                let line = data.trim()
+                if (line.length === 0) return
+                let parts = line.split(":")
+                if (parts.length < 4) return
+                let inUse = parts[0] === "*"
+                let signal = parts[1]
+                let security = parts[2]
+                let ssid = parts.slice(3).join(":")
+                if (ssid.length === 0) return
+                for (let i = 0; i < wifiNetworksModel.count; i++) {
+                    if (wifiNetworksModel.get(i).ssid === ssid) {
+                        wifiNetworksModel.setProperty(i, "inUse", inUse)
+                        wifiNetworksModel.setProperty(i, "signal", signal)
+                        wifiNetworksModel.setProperty(i, "security", security)
+                        return
+                    }
+                }
+                wifiNetworksModel.append({ ssid: ssid, signal: signal, security: security, inUse: inUse })
+            }
+        }
+    }
+    Process {
+        id: wifiRescanProc
+        command: ["nmcli", "device", "wifi", "rescan"]
+        onRunningChanged: if (!running) wifiListProc.running = true
+    }
+    Process {
+        id: wifiConnectProc
+        onRunningChanged: if (!running) { wifiPasswordTarget = ""; wifiListProc.running = true }
+    }
+    Process {
+        id: wifiDisconnectProc
+        onRunningChanged: if (!running) wifiListProc.running = true
+    }
+    Process { id: wifiToggleProc }
+
+    ListModel { id: btDevicesModel }
+
+
+    Process {
+        id: btPowerStatusProc
+        command: ["sh", "-c", "busctl get-property org.bluez /org/bluez/hci0 org.bluez.Adapter1 Powered 2>/dev/null | awk '{print $2}'"]
+        stdout: SplitParser {
+            onRead: (data) => {
+                let status = data.trim().toLowerCase()
+                
+                if (status === "true" || status === "false") {
+                    let isPowered = (status === "true")
+                    bluetoothRadioEnabled = isPowered
+
+                    if (!isPowered) {
+                        btDevicesModel.clear()
+                    } else {
+                        btDevicesProc.running = true
+                    }
+                } else {
+                    fallbackPowerCheckProc.running = true
+                }
+            }
+        }
+        stderr: SplitParser {
+            onRead: (data) => {
+                fallbackPowerCheckProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: fallbackPowerCheckProc
+        command: ["sh", "-c", "bluetoothctl show | grep -i 'Powered:' | awk '{print $2}'"]
+        stdout: SplitParser {
+            onRead: (data) => {
+                let isPowered = (data.trim().toLowerCase() === "yes")
+                bluetoothRadioEnabled = isPowered
+                if (!isPowered) {
+                    btDevicesModel.clear()
+                } else {
+                    btDevicesProc.running = true
+                }
+            }
+        }
+    }
+    Process {
+        id: btDevicesProc
+        command: ["sh", "-c", "busctl tree org.bluez | grep '/dev_' | awk -F'/' '{print $NF}' | sed 's/dev_//; s/_/:/g' | sort -u | while read -r mac; do
+            path=$(busctl tree org.bluez | grep \"dev_${mac//:/_}\" | head -n1 | awk '{print $NF}')
+            
+            name=$(busctl get-property org.bluez \"$path\" org.bluez.Device1 Name 2>/dev/null | awk -F'\"' '{print $2}')
+            if [ -z \"$name\" ]; then
+                name=$(busctl get-property org.bluez \"$path\" org.bluez.Device1 Alias 2>/dev/null | awk -F'\"' '{print $2}')
+            fi
+            
+            conn=$(busctl get-property org.bluez \"$path\" org.bluez.Device1 Connected 2>/dev/null | awk '{print $2}')
+            
+            if [ -z \"$name\" ]; then
+                name=\"Unknown\"
+            fi
+            
+            echo \"$mac|$name|$conn\"
+        done"]
+        onRunningChanged: {
+            if (running) btDevicesModel.clear()
+        }
+        stdout: SplitParser {
+            onRead: (data) => {
+                let line = data.trim()
+                if (!line) return
+                let parts = line.split("|")
+                if (parts.length < 3) return
+                
+                let mac = parts[0].trim()
+                let name = parts[1].trim()
+                let isConnected = parts[2].trim() === "true"
+
+                if (name === "Unknown") return
+                
+                let cleanName = name.replace(/-/g, ":").toLowerCase()
+                if (cleanName === mac.toLowerCase()) return
+
+                for (let i = 0; i < btDevicesModel.count; i++) {
+                    if (btDevicesModel.get(i).mac === mac) return
+                }
+
+                btDevicesModel.append({
+                    mac: mac,
+                    name: name,
+                    connected: isConnected
+                })
+            }
+        }
+        stderr: SplitParser {
+            onRead: (data) => console.warn("[bt devices] " + data)
+        }
+    }
+
+    Process {
+        id: btScanProc
+        command: ["timeout", "8", "bluetoothctl"]
+        stdinEnabled: true
+
+        function startScan() {
+            if (running) stopScan()
+            running = true
+        }
+
+        function stopScan() {
+            if (!running) return
+            btScanProc.write("scan off\nexit\n")
+            btScanStartTimer.stop()
+            running = false
+        }
+
+        onRunningChanged: {
+            if (running) {
+                btScanStartTimer.start()
+            } else {
+                if (bluetoothRadioEnabled) btDevicesProc.running = true
+            }
+        }
+        stderr: SplitParser {
+            onRead: (data) => console.warn("[bt scan] " + data)
+        }
+    }
+
+    Timer {
+        id: btScanStartTimer
+        interval: 1000
+        onTriggered: {
+            btScanProc.write("power on\n")
+            btScanProc.write("scan on\n")
+        }
+    }
+
+    Process {
+        id: btConnectProc
+        function connectDevice(mac) {
+            let macUnderscore = mac.replaceAll(":", "_")
+            command = ["sh", "-c", `path=$(busctl tree org.bluez | grep "dev_${macUnderscore}" | head -n1 | awk '{print $NF}'); busctl call org.bluez "$path" org.bluez.Device1 Connect`]
+            running = true
+        }
+        onRunningChanged: if (!running && bluetoothRadioEnabled) btDevicesProc.running = true
+        stderr: SplitParser {
+            onRead: (data) => console.warn("[bt connect] " + data)
+        }
+    }
+
+    Process {
+        id: btDisconnectProc
+        function disconnectDevice(mac) {
+            let macUnderscore = mac.replaceAll(":", "_")
+            command = ["sh", "-c", `path=$(busctl tree org.bluez | grep "dev_${macUnderscore}" | head -n1 | awk '{print $NF}'); busctl call org.bluez "$path" org.bluez.Device1 Disconnect`]
+            running = true
+        }
+        onRunningChanged: if (!running && bluetoothRadioEnabled) btDevicesProc.running = true
+        stderr: SplitParser {
+            onRead: (data) => console.warn("[bt disconnect] " + data)
+        }
+    }
+
+    Process {
+        id: btToggleProc
+        function toggle(enable) {
+            if (!enable) {
+                btDevicesModel.clear()
+            }
+            command = ["bluetoothctl", "power", enable ? "on" : "off"]
+            running = true
+        }
+        onRunningChanged: {
+            if (!running) {
+                btPowerStatusProc.running = true
+            }
+        }
+    }
+
+    Timer {
+        id: btInitTimer
+        interval: 300
+        running: false
+        repeat: false
+        onTriggered: {
+            btPowerStatusProc.running = true
+        }
+    }
+
+    Component.onCompleted: {
+        wifiRadioStatusProc.running = true
+        wifiListProc.running = true
+        btInitTimer.start()
+    }
+    
     Connections {
         target: NiriEvents
         function onKeyboardLayoutChanged(index, name) {
@@ -61,13 +315,13 @@ Item {
         Item {
             id: menuContainer
             property var rebootProcess: Process {
-                command: ["sh", "-c", "systemctl reboot"]
+                command: ["sh", "-c", "reboot"]
             }
             property var logoutProcess: Process {
                 command: ["sh", "-c", "niri msg action quit"]
             }
             property var poweroffProcess: Process {
-                command: ["sh", "-c", "systemctl poweroff"]
+                command: ["sh", "-c", "poweroff"]
             }
             property var hyprlockProcess: Process {
                 command: ["sh", "-c", "hyprlock"]
@@ -102,182 +356,499 @@ Item {
                 Behavior on opacity {
                     NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
                 }
-                Column {
+                Flickable {
+                    id: menuFlick
+                    anchors.top: parent.top
+                    anchors.topMargin: 14
                     anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.margins: 20
-                    spacing: 2
+                    width: Math.max(0, parent.width - 24)
+                    height: Math.max(0, menuRect.height - 28)
+                    clip: true
+                    contentWidth: width
+                    contentHeight: menuColumn.height
+                    boundsBehavior: Flickable.StopAtBounds
 
-                    Text {
-                        text: "Radian 13.0 Dinit"
-                        font.family: "Jetbrains Mono"
-                        font.pixelSize: 0.01667 * Screen.height
-                        color: Theme.text
-                    }
-
-                    Rectangle {
-                        id: pob
-                        height: 0.02777 * Screen.height
+                    Column {
+                        id: menuColumn
                         width: parent.width
-                        radius: 20
-                        color: Theme.mid
-                        Behavior on color {
-                            ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on radius {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on height {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
+                        spacing: 10
 
                         Text {
-                            anchors.centerIn: parent
-                            text: "󰤆 Вимикаємся"
-                            font.family: "FiraMono Nerd Font"
+                            text: "Radian 13.0 Dinit"
+                            font.family: "Jetbrains Mono"
+                            font.pixelSize: 0.01667 * Screen.height
                             color: Theme.text
-                            font.pixelSize: 0.0125 * Screen.height
                         }
+                        Row {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            spacing: 8
+                            Rectangle {
+                                id: pob
+                                height: 0.035 * Screen.height
+                                width: height
+                                radius: 25
+                                color: Theme.mid
+                                Behavior on color {
+                                    ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on radius {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on height {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
 
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                menuContainer.poweroffProcess.startDetached()
-                                Qt.quit()
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰤆"
+                                    font.family: "FiraMono Nerd Font"
+                                    color: Theme.text
+                                    font.pixelSize: 0.0125 * Screen.height
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        menuContainer.poweroffProcess.startDetached()
+                                        Qt.quit()
+                                    }
+                                    hoverEnabled: false
+                                    onEntered: {
+                                        pob.color = Theme.primary
+                                        pob.radius = 5
+                                    }
+                                    onExited: {
+                                        pob.color = Theme.mid
+                                        pob.radius = 25
+                                    }
+                                }
                             }
-                            hoverEnabled: false
-                            onEntered: {
-                                pob.color = Theme.primary
-                                pob.radius = 5
+                            Rectangle {
+                                id: rebb
+                                height: 0.035 * Screen.height
+                                width: height
+                                radius: 25
+                                color: Theme.mid
+                                Behavior on color {
+                                    ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on radius {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on height {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: ""
+                                    font.family: "FiraMono Nerd Font"
+                                    color: Theme.text
+                                    font.pixelSize: 0.0125 * Screen.height
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        menuContainer.rebootProcess.startDetached()
+                                        Qt.quit()
+                                    }
+                                    hoverEnabled: false
+                                    onEntered: {
+                                        rebb.color = Theme.primary
+                                        rebb.radius = 5
+                                    }
+                                    onExited: {
+                                        rebb.color = Theme.mid
+                                        rebb.radius = 25
+                                    }
+                                }
                             }
-                            onExited: {
-                                pob.color = Theme.mid
-                                pob.radius = 20
+                            Rectangle {
+                                id: lob
+                                height: 0.035 * Screen.height
+                                width: height
+                                radius: 25
+                                color: Theme.mid
+                                Behavior on color {
+                                    ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on radius {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on height {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰍃"
+                                    font.family: "FiraMono Nerd Font"
+                                    color: Theme.text
+                                    font.pixelSize: 0.0125 * Screen.height
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        menuContainer.logoutProcess.startDetached()
+                                    }
+                                    hoverEnabled: false
+                                    onEntered: {
+                                        lob.color = Theme.primary
+                                        lob.radius = 5
+                                    }
+                                    onExited: {
+                                        lob.color = Theme.mid
+                                        lob.radius = 25
+                                    }
+                                }
+                            }
+                            Rectangle {
+                                id: hlb
+                                height: 0.035 * Screen.height
+                                width: height
+                                radius: 25
+                                color: Theme.mid
+                                Behavior on color {
+                                    ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on radius {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+                                Behavior on height {
+                                    NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: ""
+                                    font.family: "FiraMono Nerd Font"
+                                    color: Theme.text
+                                    font.pixelSize: 0.0125 * Screen.height
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        menuContainer.hyprlockProcess.startDetached()
+                                        startMenu1.expanded = 0
+                                    }
+                                    hoverEnabled: false
+                                    onEntered: {
+                                        hlb.color = Theme.primary
+                                        hlb.radius = 5
+                                    }
+                                    onExited: {
+                                        hlb.color = Theme.mid
+                                        hlb.radius = 25
+                                    }
+                                }
+                            }
+                        }
+                        Column {
+                            id: controlCenterColumn
+                            width: parent.width
+                            spacing: 10
+                            Rectangle {
+                                width: parent.width
+                                height: 0.03 * Screen.height
+                                color: Theme.mid
+                                radius: 15
+                                Column {
+                                    width: parent.width
+                                    spacing: 4
+                                    Text {
+                                        text: Pipewire.defaultAudioSink?.audio?.muted ? "󰖁 няма" : "󰕾 " + Math.round(currentVolume * 100) + "%"
+                                        font.family: "FiraMono Nerd Font"
+                                        color: Theme.text
+                                        x: (parent.width - width) / 2
+                                        font.pixelSize: 0.0115 * Screen.height
+                                    }
+                                    Rectangle {
+                                        id: ccVolumeBar
+                                        width: parent.width - 20
+                                        x: 10
+                                        height: 0.008 * Screen.height
+                                        radius: 4
+                                        color: Theme.background
+                                        Rectangle {
+                                            anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
+                                            width: parent.width * currentVolume
+                                            radius: 4
+                                            color: Theme.lightest
+                                            Behavior on width { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+                                        }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                            function setFromX(x) {
+                                                let v = Math.max(0, Math.min(1, x / ccVolumeBar.width))
+                                                if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio)
+                                                    Pipewire.defaultAudioSink.audio.volume = v
+                                            }
+                                            onPressed: (mouse) => setFromX(mouse.x)
+                                            onPositionChanged: (mouse) => { if (pressed) setFromX(mouse.x) }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Column {
+                                id: wifiSection
+                                width: parent.width
+                                spacing: 4
+
+                                Row {
+                                    width: parent.width
+                                    Text {
+                                        width: parent.width - wifiRow2.width
+                                        text: wifiRadioEnabled ? "󰤨 Wi-Fi" : "󰤭 Wi-Fi (вимкнено)"
+                                        font.family: "FiraMono Nerd Font"
+                                        color: Theme.text
+                                        font.pixelSize: 0.0115 * Screen.height
+                                    }
+                                    Row {
+                                        id: wifiRow2
+                                        spacing: 4
+                                        Rectangle {
+                                            width: 0.028 * Screen.width
+                                            height: 0.018 * Screen.height
+                                            radius: 10
+                                            color: Theme.mid
+                                            Text { anchors.centerIn: parent; text: "󰑐"; color: Theme.text; font.family: "FiraMono Nerd Font"; font.pixelSize: 0.0095 * Screen.height }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: wifiRescanProc.running = true
+                                            }
+                                        }
+                                        Rectangle {
+                                            width: 0.028 * Screen.width
+                                            height: 0.018 * Screen.height
+                                            radius: 10
+                                            color: wifiRadioEnabled ? Theme.primary : Theme.mid
+                                            Text { anchors.centerIn: parent; text: "󰤆"; color: Theme.text; font.pixelSize: 0.0095 * Screen.height }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    wifiRadioEnabled = !wifiRadioEnabled
+                                                    wifiToggleProc.command = ["nmcli", "radio", "wifi", wifiRadioEnabled ? "on" : "off"]
+                                                    wifiToggleProc.running = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Repeater {
+                                    model: wifiNetworksModel
+                                    delegate: Column {
+                                        width: wifiSection.width
+                                        spacing: 2
+                                        Rectangle {
+                                            width: parent.width
+                                            height: 0.0225 * Screen.height
+                                            radius: 12
+                                            color: model.inUse ? Theme.primary : Theme.mid
+                                            Behavior on color { ColorAnimation { duration: 100 } }
+                                            Text {
+                                                anchors.left: parent.left
+                                                anchors.leftMargin: 8
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: (model.security !== "--" ? "󰌾 " : "") + model.ssid
+                                                color: Theme.text
+                                                font.family: "FiraMono Nerd Font"
+                                                font.pixelSize: 0.0105 * Screen.height
+                                                elide: Text.ElideRight
+                                                width: parent.width - 0.03 * Screen.width
+                                            }
+                                            Text {
+                                                anchors.right: parent.right
+                                                anchors.rightMargin: 8
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: model.signal + "%"
+                                                color: Theme.text
+                                                font.pixelSize: 0.0095 * Screen.height
+                                            }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    if (model.inUse) {
+                                                        wifiDisconnectProc.command = ["nmcli", "connection", "down", "id", model.ssid]
+                                                        wifiDisconnectProc.running = true
+                                                    } else if (model.security === "--") {
+                                                        wifiConnectProc.command = ["nmcli", "device", "wifi", "connect", model.ssid]
+                                                        wifiConnectProc.running = true
+                                                    } else {
+                                                        wifiPasswordTarget = (wifiPasswordTarget === model.ssid) ? "" : model.ssid
+                                                        wifiPasswordText = ""
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Rectangle {
+                                            visible: wifiPasswordTarget === model.ssid
+                                            width: parent.width
+                                            height: visible ? 0.0225 * Screen.height : 0
+                                            radius: 12
+                                            color: Theme.background
+                                            clip: true
+                                            Row {
+                                                anchors.fill: parent
+                                                anchors.margins: 5
+                                                spacing: 6
+                                                TextInput {
+                                                    id: wifiPwdInput
+                                                    width: parent.width - 40
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    color: Theme.text
+                                                    echoMode: TextInput.Password
+                                                    font.pixelSize: 0.0105 * Screen.height
+                                                    onTextChanged: wifiPasswordText = text
+                                                    Keys.onReturnPressed: {
+                                                        wifiConnectProc.command = ["nmcli", "device", "wifi", "connect", model.ssid, "password", wifiPasswordText]
+                                                        wifiConnectProc.running = true
+                                                    }
+                                                }
+                                                Text {
+                                                    text: "OK"
+                                                    color: Theme.text
+                                                    font.pixelSize: 0.0105 * Screen.height
+                                                    MouseArea {
+                                                        anchors.fill: parent
+                                                        anchors.margins: -6
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: {
+                                                            wifiConnectProc.command = ["nmcli", "device", "wifi", "connect", model.ssid, "password", wifiPasswordText]
+                                                            wifiConnectProc.running = true
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Column {
+                                id: btSection
+                                width: parent.width
+                                spacing: 4
+                                Row {
+                                    width: parent.width
+                                    Text {
+                                        width: parent.width - btRow2.width
+                                        text: bluetoothRadioEnabled ? "󰂯 Bluetooth" : "󰂲 Bluetooth (вимкнено)"
+                                        font.family: "FiraMono Nerd Font"
+                                        color: Theme.text
+                                        font.pixelSize: 0.0115 * Screen.height
+                                    }
+                                    Row {
+                                        id: btRow2
+                                        spacing: 4
+                                        Rectangle {
+                                            width: 0.028 * Screen.width
+                                            height: 0.018 * Screen.height
+                                            radius: 10
+                                            color: Theme.mid
+                                            Text { anchors.centerIn: parent; text: "󰑐"; color: Theme.text; font.family: "FiraMono Nerd Font"; font.pixelSize: 0.0095 * Screen.height }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: btScanProc.running = true
+                                            }
+                                        }
+                                        Rectangle {
+                                            width: 0.028 * Screen.width
+                                            height: 0.018 * Screen.height
+                                            radius: 10
+                                            color: bluetoothRadioEnabled ? Theme.primary : Theme.mid
+                                            Text { anchors.centerIn: parent; text: "󰤆"; color: Theme.text; font.pixelSize: 0.0095 * Screen.height }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    bluetoothRadioEnabled = !bluetoothRadioEnabled
+                                                    btToggleProc.command = ["sh", "-c", "bluetoothctl power " + (bluetoothRadioEnabled ? "on" : "off")]
+                                                    btToggleProc.running = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Repeater {
+                                    model: btDevicesModel
+                                    delegate: Rectangle {
+                                        width: btSection.width
+                                        height: 0.0225 * Screen.height
+                                        radius: 12
+                                        color: model.connected ? Theme.primary : Theme.mid
+                                        Behavior on color { ColorAnimation { duration: 100 } }
+                                        Text {
+                                            anchors.left: parent.left
+                                            anchors.leftMargin: 8
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            anchors.right: parent.right
+                                            anchors.rightMargin: 8
+                                            text: model.name
+                                            color: Theme.text
+                                            font.family: "FiraMono Nerd Font"
+                                            font.pixelSize: 0.0105 * Screen.height
+                                            elide: Text.ElideRight
+                                        }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                if (model.connected) {
+                                                    btDisconnectProc.command = ["bluetoothctl", "disconnect", model.mac]
+                                                    btDisconnectProc.running = true
+                                                } else {
+                                                    btConnectProc.command = ["sh", "-c", "bluetoothctl pair " + model.mac + "; bluetoothctl trust " + model.mac + "; bluetoothctl connect " + model.mac]
+                                                    btConnectProc.running = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                Text {
+                                    visible: btDevicesModel.count === 0
+                                    text: "No devices."
+                                    color: Theme.text
+                                    font.pixelSize: 0.0095 * Screen.height
+                                    width: parent.width
+                                    wrapMode: Text.WordWrap
+                                }
                             }
                         }
                     }
                     Rectangle {
-                        id: rebb
-                        height: 0.027777 * Screen.height
-                        width: parent.width
-                        radius: 20
-                        color: Theme.mid
-                        Behavior on color {
-                            ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on radius {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on height {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
+                        anchors.left: parent.left
+                        anchors.bottom: parent.bottom
+                        anchors.right: parent.right
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: " Ребутаєм"
-                            font.family: "FiraMono Nerd Font"
-                            color: Theme.text
-                            font.pixelSize: 0.0125 * Screen.height
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                menuContainer.rebootProcess.startDetached()
-                                Qt.quit()
-                            }
-                            hoverEnabled: false
-                            onEntered: {
-                                rebb.color = Theme.primary
-                                rebb.radius = 5
-                            }
-                            onExited: {
-                                rebb.color = Theme.mid
-                                rebb.radius = 20
-                            }
-                        }
-                    }
-                    Rectangle {
-                        id: lob
-                        height: 0.027777 * Screen.height
-                        width: parent.width
-                        radius: 20
-                        color: Theme.mid
-                        Behavior on color {
-                            ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on radius {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on height {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "󰍃 Виходім із сесії"
-                            font.family: "FiraMono Nerd Font"
-                            color: Theme.text
-                            font.pixelSize: 0.0125 * Screen.height
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                menuContainer.logoutProcess.startDetached()
-                            }
-                            hoverEnabled: false
-                            onEntered: {
-                                lob.color = Theme.primary
-                                lob.radius = 5
-                            }
-                            onExited: {
-                                lob.color = Theme.mid
-                                lob.radius = 20
-                            }
-                        }
-                    }
-                    Rectangle {
-                        id: hlb
-                        height: 0.027777 * Screen.height
-                        width: parent.width
-                        radius: 20
-                        color: Theme.mid
-                        Behavior on color {
-                            ColorAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on radius {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-                        Behavior on height {
-                            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: " Локаєм"
-                            font.family: "FiraMono Nerd Font"
-                            color: Theme.text
-                            font.pixelSize: 0.0125 * Screen.height
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                menuContainer.hyprlockProcess.startDetached()
-                                startMenu1.expanded = 0
-                            }
-                            hoverEnabled: false
-                            onEntered: {
-                                hlb.color = Theme.primary
-                                hlb.radius = 5
-                            }
-                            onExited: {
-                                hlb.color = Theme.mid
-                                hlb.radius = 20
+                        Image {
+                            id: spinningImage
+                            fillMode: Image.TileHorizontally
+                            source: "images/kolovrat.svg"
+                            x: -60
+                            y: 300
+                            scale: 0.5
+                            RotationAnimation on rotation {
+                                from: 0
+                                to: 360
+                                duration: 10000
+                                loops: Animation.Infinite
+                                running: true
                             }
                         }
                     }
@@ -339,9 +910,6 @@ Item {
                 Behavior on width {
                     NumberAnimation { duration: 50; }
                 }
-                // Behavior on width {
-                //     NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
-                // }
             }
             Rectangle {
                 id: startMenu
@@ -615,7 +1183,7 @@ Item {
                 text: currentTime
                 color: Theme.text
                 font.pixelSize: 0.0138888 * Screen.height
-                font.family: "URW Gothic"
+                font.family: "Liberation Mono"
                 
                 Timer {
                     interval: 1000
