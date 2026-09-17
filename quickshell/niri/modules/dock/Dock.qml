@@ -161,7 +161,7 @@ Item {
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 25
-                            color: Theme.lighter
+                            color: Theme.primary
                             scale: isFocused ? 1 : 0.75
                             Behavior on scale {
                                 NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
