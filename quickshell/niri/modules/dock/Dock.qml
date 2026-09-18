@@ -156,13 +156,13 @@ Item {
                     model: windowModel
                     delegate: Rectangle {
                         Rectangle {
-                            width: 50
+                            width: 45
                             height: width
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 25
                             color: Theme.primary
-                            scale: isFocused ? 1 : 0.75
+                            scale: isFocused ? 1 : 0.8
                             Behavior on scale {
                                 NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
                             }
