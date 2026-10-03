@@ -16,7 +16,7 @@ Item {
         anchors.bottom: true
         anchors.right: true
         width: Screen.width
-        height: Screen.height - 112.5
+        height: Screen.height - 0.078125 * Screen.height
         Rectangle {
             id: wallpaper
             anchors.fill: parent
@@ -35,8 +35,8 @@ Item {
             anchors.leftMargin: -0.0708 * Screen.height
             anchors.rightMargin: anchors.leftMargin
             color: "transparent"
-            radius: 130 
-            border.width: 102
+            radius: 0.0902777777778 * Screen.height 
+            border.width: 0.03984375 * Screen.width
             border.color: Theme.background
         }
     }
