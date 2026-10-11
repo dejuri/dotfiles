@@ -5,7 +5,6 @@ import Quickshell
 import Niri 0.1
 import "./modules/bar/"
 import "./modules/wallpaper/"
-import "./modules/cava/"
 import "./modules/lock/"
 import "./modules/volume/"
 import "./modules/clock/"

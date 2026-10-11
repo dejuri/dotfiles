@@ -10,6 +10,8 @@ import qs.services
 import "../theme"
 
 Item {
+    id: mainItem
+    signal openLauncher()
     property real currentVolume: Pipewire.defaultAudioSink?.audio?.volume ?? 0
     property bool wifiRadioEnabled: true
     property bool bluetoothRadioEnabled: false
@@ -1047,10 +1049,11 @@ Item {
     }
 
     PanelWindow {
+        
         WlrLayershell.layer: WlrLayer.Bottom
         exclusiveZone: 0.03123 * Screen.height
         color: "transparent"
-        id: panel
+        id: bar
         anchors {
             top: true
             left: true
@@ -1259,14 +1262,52 @@ Item {
                 anchors.right: leftDock.right
                 anchors.top: leftDock.top
                 anchors.bottom: leftDock.bottom
+                clip: true
+
                 Text {
-                    text: NiriEvents.focusedWindowTitle
+                    id: fwtext
+                    text: NiriEvents.focusedWindowTitle ?? ""
                     color: Theme.text
+                    x: 0
+
+                    property bool isOverflowing: width > fwrect.width
+
+                    onTextChanged: x = 0
+                    onIsOverflowingChanged: {
+                        if (!isOverflowing) x = 0
+                    }
+
+                    SequentialAnimation {
+                        running: fwtext.isOverflowing
+                        loops: Animation.Infinite
+
+                        PauseAnimation { duration: 1200 }
+                        
+                        NumberAnimation {
+                            target: fwtext
+                            property: "x"
+                            from: 0
+                            to: fwrect.width - fwtext.width - 10
+                            duration: 4000
+                            easing.type: Easing.InOutQuad
+                        }
+                        
+                        PauseAnimation { duration: 1200 }
+                        
+                        NumberAnimation {
+                            target: fwtext
+                            property: "x"
+                            from: fwrect.width - fwtext.width - 10
+                            to: 0
+                            duration: 4000
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
                     font.pixelSize: 0.010888 * Screen.height
                     font.family: "Monospace"
-                    anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
-                }
+                }                    // Анімація прокручування
             }
             Rectangle {
                 id: tmbg

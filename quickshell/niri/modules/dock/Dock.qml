@@ -7,11 +7,8 @@ import "../theme"
 
 // Das ist meine dock
 Item {
-    
     id: dockScope
-
     ListModel { id: windowModel }
-
     readonly property string iconDir: "icons/"
     Process { id: commandRunner }
 
