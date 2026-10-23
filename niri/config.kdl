@@ -262,7 +262,7 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 // spawn-at-startup "waybar"
-spawn-at-startup "qs-niri"
+spawn-at-startup "qs"
 spawn-at-startup "dbus-update-activation-environment" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri" "DISPLAY=:0"
 spawn-at-startup "mako"
 // Pipewire
@@ -377,7 +377,8 @@ binds {
     Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "/usr/bin/kitty"; }
     Mod+T hotkey-overlay-title="Run telegram" { spawn "AyuGram"; }
     Mod+G hotkey-overlay-title="Run browser: helium" { spawn "helium-bin"; }
-    Mod+R hotkey-overlay-title="Run an Application: rofi" { spawn "~/syriscripts/rofi.sh"; }
+    // Mod+R hotkey-overlay-title="Run an Application: rofi" { spawn "~/syriscripts/rofi.sh"; }
+    Mod+R hotkey-overlay-title="Run an Application" { spawn "qs" "ipc" "call" "launcher" "toggle"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
     Ctrl+Escape hotkey-overlay-title="Run a system monitor: btop" { spawn "kitty" "-e" "btop"; }
     Mod+B hotkey-overlay-title="Spawn bluetui in kitty" { spawn "kitty" "-e" "bluetui"; }
@@ -476,7 +477,6 @@ binds {
     Mod+Shift+Page_Up   { move-workspace-up; }
     Mod+Shift+U         { move-workspace-down; }
     Mod+Shift+I         { move-workspace-up; }
-
     // You can bind mouse wheel scroll ticks using the following syntax.
     // These binds will change direction based on the natural-scroll setting.
     //
