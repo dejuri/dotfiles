@@ -15,8 +15,8 @@ Item {
         anchors.left: true
         anchors.bottom: true
         anchors.right: true
-        width: Screen.width
-        height: Screen.height - 0.078125 * Screen.height
+        width:2560
+        height:1440 - 0.078125 *1440
         Rectangle {
             id: wallpaper
             anchors.fill: parent
@@ -30,13 +30,13 @@ Item {
         Rectangle {
             id: main
             anchors.fill: parent
-            anchors.topMargin: -0.0705 * Screen.height
-            anchors.bottomMargin: -0.0705 * Screen.height
-            anchors.leftMargin: -0.0708 * Screen.height
+            anchors.topMargin: -0.0705 *1440
+            anchors.bottomMargin: -0.0705 *1440
+            anchors.leftMargin: -0.0708 *1440
             anchors.rightMargin: anchors.leftMargin
             color: "transparent"
-            radius: 0.0902777777778 * Screen.height 
-            border.width: 0.03984375 * Screen.width
+            radius: 0.0902777777778 *1440 
+            border.width: 0.03984375 *2560
             border.color: Theme.background
         }
     }

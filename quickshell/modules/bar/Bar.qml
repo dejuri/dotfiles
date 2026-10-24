@@ -280,7 +280,7 @@ Item {
         id: ccroot
         color: "transparent"
 
-        width: 480
+        implicitWidth: 350
         anchors {
             left: true
             top: true
@@ -324,8 +324,8 @@ Item {
             property var logoutProcess: Process { command: ["sh", "-c", "niri msg action quit"] }
             property var poweroffProcess: Process { command: ["sh", "-c", "poweroff"] }
             property var hyprlockProcess: Process { command: ["sh", "-c", "hyprlock"] }
-            width: parent.width
-            height: parent.height
+            implicitWidth: parent.implicitWidth
+            implicitHeight: parent.height
 
             Rectangle {
                 id: blg
@@ -335,8 +335,8 @@ Item {
             }
             Rectangle {
                 id: menuRect
-                height: 0.71 * Screen.height
-                width: 0.17 * Screen.width
+                height: 950
+                width: 350
                 transformOrigin: Item.Left
                 scale: ccroot.expanded ? 1 : 0.9
                 anchors.verticalCenter: parent.verticalCenter
@@ -388,7 +388,7 @@ Item {
                         Text {
                             text: Theme.os_name
                             font.family: Theme.font
-                            font.pixelSize: 0.01667 * Screen.height
+                            font.pixelSize: 24
                             color: Theme.text
                         }
                         Row {
@@ -396,7 +396,7 @@ Item {
                             spacing: 8
                             Rectangle {
                                 id: pob
-                                height: 0.035 * Screen.height
+                                height: 50
                                 width: height
                                 radius: 25
                                 color: Theme.mid
@@ -415,7 +415,7 @@ Item {
                                     text: "󰤆"
                                     font.family: Theme.font
                                     color: Theme.text
-                                    font.pixelSize: 0.0125 * Screen.height
+                                    font.pixelSize: 18
                                 }
 
                                 MouseArea {
@@ -438,7 +438,7 @@ Item {
                             }
                             Rectangle {
                                 id: rebb
-                                height: 0.035 * Screen.height
+                                height: 50
                                 width: height
                                 radius: 25
                                 color: Theme.mid
@@ -457,7 +457,7 @@ Item {
                                     text: ""
                                     font.family: Theme.font
                                     color: Theme.text
-                                    font.pixelSize: 0.0125 * Screen.height
+                                    font.pixelSize: 18
                                 }
 
                                 MouseArea {
@@ -480,7 +480,7 @@ Item {
                             }
                             Rectangle {
                                 id: lob
-                                height: 0.035 * Screen.height
+                                height: 50
                                 width: height
                                 radius: 25
                                 color: Theme.mid
@@ -499,7 +499,7 @@ Item {
                                     text: "󰍃"
                                     font.family: Theme.font
                                     color: Theme.text
-                                    font.pixelSize: 0.0125 * Screen.height
+                                    font.pixelSize: 18
                                 }
 
                                 MouseArea {
@@ -521,7 +521,7 @@ Item {
                             }
                             Rectangle {
                                 id: hlb
-                                height: 0.035 * Screen.height
+                                height: 50
                                 width: height
                                 radius: 25
                                 color: Theme.mid
@@ -540,7 +540,7 @@ Item {
                                     text: ""
                                     font.family: Theme.font
                                     color: Theme.text
-                                    font.pixelSize: 0.0125 * Screen.height
+                                    font.pixelSize: 18
                                 }
 
                                 MouseArea {
@@ -571,7 +571,7 @@ Item {
                                     spacing: 4
                                     Rectangle {
                                     width: parent.width
-                                    height: 0.03 * Screen.height
+                                    height: 40
                                     color: Theme.mid
                                     radius: 25
                                     Rectangle {
@@ -579,12 +579,12 @@ Item {
                                         width: parent.width
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        height: 0.03 * Screen.height
+                                        height: 40
                                         radius: 25
                                         color: Theme.mid
                                         Rectangle {
                                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-                                            width: (parent.width * currentVolume + 0.1) / 1.11 + 40
+                                            width: (parent.width * currentVolume + 0.4) / 1.14 + 40
                                             radius: 25
                                             color: Theme.primary
                                         }
@@ -606,7 +606,7 @@ Item {
                                             color: Theme.background
                                             x: 10
                                             y: 10
-                                            font.pixelSize: 0.0115 * Screen.height
+                                            font.pixelSize: 0.0115 * 1440
                                         }
                                     }
                                 }
@@ -624,7 +624,7 @@ Item {
                                     Rectangle {
                                         id: wifiTile
                                         width: parent.width
-                                        height: 0.035 * Screen.height
+                                        height: 50
                                         radius: 16
                                         color: wifiRadioEnabled ? Theme.primary : Theme.mid
                                         Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
@@ -641,21 +641,7 @@ Item {
                                                 font.family: Theme.font
                                                 color: wifiRadioEnabled ? Theme.background : Theme.text
                                                 Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
-                                                font.pixelSize: 0.0135 * Screen.height
-                                            }
-                                            Text {
-                                                function activeSsid() {
-                                                    for (let i = 0; i < wifiNetworksModel.count; i++)
-                                                        if (wifiNetworksModel.get(i).inUse) return wifiNetworksModel.get(i).ssid
-                                                    return ""
-                                                }
-                                                text: wifiRadioEnabled ? (activeSsid().length > 0 ? activeSsid() : "Wi-Fi") : "Wi-Fi вимкнено"
-                                                color: Theme.text
-                                                font.family: Theme.font
-                                                font.pixelSize: 0.0105 * Screen.height
-                                                elide: Text.ElideRight
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                width: (wifiTile.width - 0.10 * Screen.width)
+                                                font.pixelSize: 20
                                             }
                                         }
 
@@ -677,7 +663,7 @@ Item {
                                             anchors.right: parent.right
                                             anchors.top: parent.top
                                             anchors.bottom: parent.bottom
-                                            width: 0.032 * Screen.width
+                                            width: 40
                                             color: "transparent"
                                             Text {
                                                 anchors.centerIn: parent
@@ -685,7 +671,7 @@ Item {
                                                 font.family: Theme.font
                                                 color: wifiRadioEnabled ? Theme.background : Theme.text
                                                 Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
-                                                font.pixelSize: 0.011 * Screen.height
+                                                font.pixelSize: 14
                                                 rotation: wifiExpanded ? 0 : -90
                                                 Behavior on rotation { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                                             }
@@ -718,7 +704,7 @@ Item {
                                                 spacing: 4
                                                 Rectangle {
                                                     width: (parent.width - 4) / 2
-                                                    height: 0.02 * Screen.height
+                                                    height: 28
                                                     radius: 12
                                                     color: Theme.mid
                                                     Text {
@@ -726,7 +712,7 @@ Item {
                                                         text: wifiRescanProc.running ? "Scanning..." : "󰑐 Scan"
                                                         color: Theme.text
                                                         font.family: Theme.font
-                                                        font.pixelSize: 0.0095 * Screen.height
+                                                        font.pixelSize: 14
                                                     }
                                                     MouseArea {
                                                         anchors.fill: parent
@@ -736,7 +722,7 @@ Item {
                                                 }
                                                 Rectangle {
                                                     width: (parent.width - 4) / 2
-                                                    height: 0.02 * Screen.height
+                                                    height: 28
                                                     radius: 12
                                                     color: Theme.mid
                                                     opacity: wifiRescanProc.running ? 1 : 0.4
@@ -745,7 +731,7 @@ Item {
                                                         text: "✕ Stop"
                                                         color: Theme.text
                                                         font.family: Theme.font
-                                                        font.pixelSize: 0.0095 * Screen.height
+                                                        font.pixelSize: 0.0095 *1440
                                                     }
                                                     MouseArea {
                                                         anchors.fill: parent
@@ -763,7 +749,7 @@ Item {
                                                     spacing: 2
                                                     Rectangle {
                                                         width: parent.width
-                                                        height: 0.0225 * Screen.height
+                                                        height: 0.0225 *1440
                                                         radius: 12
                                                         color: model.inUse ? Theme.primary : Theme.mid
                                                         Behavior on color { ColorAnimation { duration: 100 } }
@@ -774,9 +760,9 @@ Item {
                                                             text: (model.security !== "--" ? "󰌾 " : "") + model.ssid
                                                             color: model.inUse ? Theme.background : Theme.text
                                                             font.family: Theme.font
-                                                            font.pixelSize: 0.0105 * Screen.height
+                                                            font.pixelSize: 15
                                                             elide: Text.ElideRight
-                                                            width: parent.width - 0.03 * Screen.width
+                                                            width: parent.width - 0.03 *2560
                                                         }
                                                         Text {
                                                             anchors.right: parent.right
@@ -784,7 +770,7 @@ Item {
                                                             anchors.verticalCenter: parent.verticalCenter
                                                             text: model.signal + "%"
                                                             color: Theme.text
-                                                            font.pixelSize: 0.0095 * Screen.height
+                                                            font.pixelSize: 14
                                                         }
                                                         MouseArea {
                                                             anchors.fill: parent
@@ -806,7 +792,7 @@ Item {
                                                     Rectangle {
                                                         visible: wifiPasswordTarget === model.ssid
                                                         width: parent.width
-                                                        height: visible ? 0.0225 * Screen.height : 0
+                                                        height: visible ? 0.0225 *1440 : 0
                                                         radius: 12
                                                         color: Theme.background
                                                         clip: true
@@ -820,7 +806,8 @@ Item {
                                                                 anchors.verticalCenter: parent.verticalCenter
                                                                 color: Theme.text
                                                                 echoMode: TextInput.Password
-                                                                font.pixelSize: 0.0105 * Screen.height
+                                                                focus: true
+                                                                font.pixelSize: 15
                                                                 onTextChanged: wifiPasswordText = text
                                                                 Keys.onReturnPressed: {
                                                                     wifiConnectProc.command = ["nmcli", "device", "wifi", "connect", model.ssid, "password", wifiPasswordText]
@@ -830,7 +817,7 @@ Item {
                                                             Text {
                                                                 text: "OK"
                                                                 color: Theme.text
-                                                                font.pixelSize: 0.0105 * Screen.height
+                                                                font.pixelSize: 15
                                                                 MouseArea {
                                                                     anchors.fill: parent
                                                                     anchors.margins: -6
@@ -850,7 +837,7 @@ Item {
                                                 visible: wifiNetworksModel.count === 0
                                                 text: "No networks found"
                                                 color: Theme.text
-                                                font.pixelSize: 0.0095 * Screen.height
+                                                font.pixelSize: 0.0095 *1440
                                                 width: parent.width
                                                 wrapMode: Text.WordWrap
                                             }
@@ -867,7 +854,7 @@ Item {
                                     Rectangle {
                                         id: btTile
                                         width: parent.width
-                                        height: 0.035 * Screen.height
+                                        height: 50
                                         radius: 16
                                         color: bluetoothRadioEnabled ? Theme.primary : Theme.mid
                                         Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
@@ -884,7 +871,7 @@ Item {
                                                 font.family: Theme.font
                                                 color: bluetoothRadioEnabled ? Theme.background : Theme.text
                                                 Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
-                                                font.pixelSize: 0.0135 * Screen.height
+                                                font.pixelSize: 16
                                             }
                                             Text {
                                                 function connectedName() {
@@ -895,10 +882,10 @@ Item {
                                                 text: bluetoothRadioEnabled ? (connectedName().length > 0 ? connectedName() : "Bluetooth") : "Bluetooth вимкнено"
                                                 color: Theme.text
                                                 font.family: Theme.font
-                                                font.pixelSize: 0.0105 * Screen.height
+                                                font.pixelSize: 15
                                                 elide: Text.ElideRight
                                                 anchors.verticalCenter: parent.verticalCenter
-                                                width: (btTile.width - 0.10 * Screen.width)
+                                                width: btTile.width - 256
                                             }
                                         }
 
@@ -919,7 +906,7 @@ Item {
                                             anchors.right: parent.right
                                             anchors.top: parent.top
                                             anchors.bottom: parent.bottom
-                                            width: 0.032 * Screen.width
+                                            width: 40
                                             color: "transparent"
                                             Text {
                                                 anchors.centerIn: parent
@@ -927,7 +914,7 @@ Item {
                                                 font.family: Theme.font
                                                 color: bluetoothRadioEnabled ? Theme.background : Theme.text
                                                 Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
-                                                font.pixelSize: 0.011 * Screen.height
+                                                font.pixelSize: 0.011 *1440
                                                 rotation: btExpanded ? 0 : -90
                                                 Behavior on rotation { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                                             }
@@ -960,7 +947,7 @@ Item {
                                                 spacing: 4
                                                 Rectangle {
                                                     width: (parent.width - 4) / 2
-                                                    height: 0.02 * Screen.height
+                                                    height: 28
                                                     radius: 12
                                                     color: Theme.mid
                                                     Text {
@@ -968,7 +955,7 @@ Item {
                                                         text: btScanProc.running ? "Scanning..." : "󰑐 Scan"
                                                         color: Theme.text
                                                         font.family: Theme.font
-                                                        font.pixelSize: 0.0095 * Screen.height
+                                                        font.pixelSize: 0.0095 *1440
                                                     }
                                                     MouseArea {
                                                         anchors.fill: parent
@@ -978,7 +965,7 @@ Item {
                                                 }
                                                 Rectangle {
                                                     width: (parent.width - 4) / 2
-                                                    height: 0.02 * Screen.height
+                                                    height: 28
                                                     radius: 12
                                                     color: Theme.mid
                                                     opacity: btScanProc.running ? 1 : 0.4
@@ -987,7 +974,7 @@ Item {
                                                         text: "✕ Stop"
                                                         color: Theme.text
                                                         font.family: Theme.font
-                                                        font.pixelSize: 0.0095 * Screen.height
+                                                        font.pixelSize: 0.0095 *1440
                                                     }
                                                     MouseArea {
                                                         anchors.fill: parent
@@ -1002,7 +989,7 @@ Item {
                                                 model: btDevicesModel
                                                 delegate: Rectangle {
                                                     width: btExpandedContent.width
-                                                    height: 0.0225 * Screen.height
+                                                    height: 0.0225 *1440
                                                     radius: 12
                                                     color: model.connected ? Theme.primary : Theme.mid
                                                     Behavior on color { ColorAnimation { duration: 100 } }
@@ -1015,7 +1002,7 @@ Item {
                                                         text: model.name
                                                         color: model.connected ? Theme.background : Theme.text
                                                         font.family: Theme.font
-                                                        font.pixelSize: 0.0105 * Screen.height
+                                                        font.pixelSize: 15
                                                         elide: Text.ElideRight
                                                     }
                                                     MouseArea {
@@ -1036,7 +1023,7 @@ Item {
                                                 visible: btDevicesModel.count === 0
                                                 text: "No devices found"
                                                 color: Theme.text
-                                                font.pixelSize: 0.0095 * Screen.height
+                                                font.pixelSize: 0.0095 *1440
                                                 width: parent.width
                                                 wrapMode: Text.WordWrap
                                             }
@@ -1053,7 +1040,7 @@ Item {
 
     PanelWindow {
         WlrLayershell.layer: WlrLayer.Bottom
-        exclusiveZone: 0.03123 * Screen.height
+        exclusiveZone: 0.03123 *1440
         color: "transparent"
         id: bar
         anchors {
@@ -1061,7 +1048,7 @@ Item {
             left: true
             right: true
         }
-        implicitHeight: 0.03125 * Screen.height
+        implicitHeight: 0.03125 *1440
 
         Rectangle {
             id: background
@@ -1071,11 +1058,11 @@ Item {
             Rectangle {
                 id: rightDock
                 color: Theme.mid
-                anchors.topMargin: 0.00386 * Screen.height
-                anchors.rightMargin: 0.00781 * Screen.width
+                anchors.topMargin: 0.00386 *1440
+                anchors.rightMargin: 0.00781 *2560
                 radius: 15
-                height: 0.0229 * Screen.height
-                anchors.leftMargin: 0.0039 * Screen.width
+                height: 0.0229 *1440
+                anchors.leftMargin: 0.0039 *2560
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.left: timebg.right
@@ -1084,11 +1071,11 @@ Item {
             Rectangle {
                 id: leftDock
                 color: Theme.mid
-                anchors.topMargin: 0.00386 * Screen.height
-                anchors.leftMargin: 0.00781 * Screen.width
+                anchors.topMargin: 0.00386 *1440
+                anchors.leftMargin: 0.00781 *2560
                 radius: 15
-                height: 0.0229 * Screen.height
-                anchors.rightMargin: 0.0039 * Screen.width
+                height: 0.0229 *1440
+                anchors.rightMargin: 0.0039 *2560
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.right: timebg.left
@@ -1096,18 +1083,18 @@ Item {
             Rectangle {
                 id: wsbg
                 color: Theme.midnext
-                height: 0.0236 * Screen.height
+                height: 0.0236 *1440
                 radius: 15
                 anchors.verticalCenter: workspaces.verticalCenter
                 anchors.left: workspaces.left
-                anchors.leftMargin: (-0.005125) * Screen.width
-                width: workspaces.width + 0.01025 * Screen.width
+                anchors.leftMargin: (-0.005125) *2560
+                width: workspaces.width + 0.01025 *2560
                 Behavior on width { NumberAnimation { duration: 50; } }
             }
             Rectangle {
                 id: startbutton
                 color: Theme.midnext
-                height: 0.027777 * Screen.height
+                height: 0.027777 *1440
                 radius: 25
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
@@ -1137,12 +1124,12 @@ Item {
             Rectangle {
                 id: audioDock
                 color: Theme.midnext
-                anchors.rightMargin: 0.0078125 * Screen.width
+                anchors.rightMargin: 0.0078125 *2560
                 anchors.right: parent.right
                 anchors.top: leftDock.top
                 anchors.bottom: rightDock.bottom
                 radius: 25
-                width: 0.078125 * Screen.width
+                width: 0.078125 *2560
                 property real currentVolume: Pipewire.defaultAudioSink?.audio?.volume ?? 0
                 Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                 Behavior on radius { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
@@ -1183,7 +1170,7 @@ Item {
                     anchors.left: parent
                     anchors.right: parent
                     color: Theme.text
-                    font.pixelSize: 0.01111 * Screen.height
+                    font.pixelSize: 0.01111 *1440
                     font.family: Theme.font
                     text: Pipewire.defaultAudioSink?.audio?.muted ? "󰖁 няма" : "󰕾 " + Math.round(audioDock.currentVolume * 100) + "%"
                 }
@@ -1193,12 +1180,12 @@ Item {
                     anchors {
                         left: parent.left
                         bottom: parent.bottom
-                        leftMargin: 0.003906 * Screen.width
-                        bottomMargin: 0.004166 * Screen.height
+                        leftMargin: 0.003906 *2560
+                        bottomMargin: 0.004166 *1440
                     }
-                    height: 0.004166 * Screen.height
+                    height: 0.004166 *1440
                     Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.InOutQuad } }
-                    width: parent.width - (0.0078125 * Screen.width)
+                    width: parent.width - (0.0078125 *2560)
                     radius: 3
                     color: Theme.background
 
@@ -1217,7 +1204,7 @@ Item {
                 anchors.right: audioDock.left
                 anchors.bottom: rightDock.bottom
                 anchors.rightMargin: 6
-                width: 0.02 * Screen.width
+                width: 0.02 *2560
                 radius: 25
                 color: Theme.midnext
                 Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
@@ -1226,7 +1213,7 @@ Item {
                     id: samlayout
                     text: slid
                     color: Theme.text
-                    font.pixelSize: 0.012 * Screen.height
+                    font.pixelSize: 0.012 *1440
                     font.family: Theme.font
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
@@ -1301,7 +1288,7 @@ Item {
                         }
                     }
 
-                    font.pixelSize: 0.010888 * Screen.height
+                    font.pixelSize: 0.010888 *1440
                     font.family: Theme.font
                     anchors.verticalCenter: parent.verticalCenter
                 }                    // Анімація прокручування
@@ -1309,14 +1296,14 @@ Item {
             Rectangle {
                 id: timebg
                 color: Theme.midnext
-                height: 0.023611 * Screen.height
+                height: 0.023611 *1440
                 radius: 14
                 anchors.verticalCenter: panel.verticalCenter
                 anchors.topMargin: 5
                 anchors.top: parent.top
                 anchors.left: timeDisplay.left
-                anchors.leftMargin: (-0.0125) * Screen.width
-                width: timeDisplay.width + (0.025 * Screen.width)
+                anchors.leftMargin: (-0.0125) *2560
+                width: timeDisplay.width + (0.025 *2560)
 
                 Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
             }
@@ -1325,9 +1312,9 @@ Item {
                 anchors {
                     verticalCenter: parent.verticalCenter
                     left: parent.left
-                    leftMargin: 0.03125 * Screen.width
+                    leftMargin: 0.03125 *2560
                 }
-                spacing: 0.00078125 * Screen.width
+                spacing: 0.00078125 *2560
 
                 Repeater {
                     model: niri.workspaces
@@ -1335,8 +1322,8 @@ Item {
                     Rectangle {
                         id: wsrect
                         property bool hovered: false
-                        width: 0.009084375 * Screen.width
-                        height: 0.01484375 * Screen.height
+                        width: 0.009084375 *2560
+                        height: 0.01484375 *1440
                         scale: hovered ? 1 : (model.isActive ? 1 : 0.5)
                         radius: hovered ? 5 : 40
                         color: model.isActive ? Theme.primary : Theme.mid
@@ -1367,7 +1354,7 @@ Item {
 
                 text: currentTime
                 color: Theme.text
-                font.pixelSize: 0.0138888 * Screen.height
+                font.pixelSize: 0.0138888 *1440
                 font.family: Theme.font
                 
                 Timer {
@@ -1395,7 +1382,7 @@ Item {
                 color: Theme.text
                 font.family: Theme.font
                 text: "󰌽"
-                font.pixelSize: Screen.height * 0.02289
+                font.pixelSize:1440 * 0.02289
                 scale: 0.75
                 Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
             }

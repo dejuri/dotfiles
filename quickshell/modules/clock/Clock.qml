@@ -10,7 +10,7 @@ PanelWindow {
         precision: SystemClock.Seconds
     }
     color: "transparent"
-    height: Screen.height / 2
+    height:1440 / 2
     anchors {
         top: true
         left: true
@@ -25,7 +25,7 @@ PanelWindow {
     Text {
         text: Qt.formatDateTime(clock.date, "hh:mm")
         font.family: sfFont.name
-        font.pixelSize: 0.175 * Screen.height
+        font.pixelSize: 0.175 *1440
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -10
         anchors.verticalCenter: parent.verticalCenter
@@ -38,7 +38,7 @@ PanelWindow {
         id: main
         text: Qt.formatDateTime(clock.date, "hh:mm")
         font.family: sfFont.name
-        font.pixelSize: 0.175 * Screen.height
+        font.pixelSize: 0.175 *1440
         anchors.centerIn: parent
         color: Theme.text
     }
