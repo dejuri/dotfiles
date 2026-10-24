@@ -373,16 +373,17 @@ binds {
     // shows a list of important hotkeys.
     Mod+Shift+Slash { show-hotkey-overlay; }
 
-    // --------------------- SYRI BINDS --------------------- 
+    // --------------------- SYRI/THYRI/SLAVI BINDS --------------------- 
     Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "/usr/bin/kitty"; }
-    Mod+T hotkey-overlay-title="Run telegram" { spawn "AyuGram"; }
-    Mod+G hotkey-overlay-title="Run browser: helium" { spawn "helium-bin"; }
+    Mod+T hotkey-overlay-title="Run Telegram" { spawn "AyuGram"; }
+    Mod+G hotkey-overlay-title="Run Browser: Helium" { spawn "helium-bin"; }
     // Mod+R hotkey-overlay-title="Run an Application: rofi" { spawn "~/syriscripts/rofi.sh"; }
     Mod+R hotkey-overlay-title="Run an Application" { spawn "qs" "ipc" "call" "launcher" "toggle"; }
+    Mod+C hotkey-overlay-title="Open Control Center" { spawn "qs" "ipc" "call" "controlcenter" "toggle"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
-    Ctrl+Escape hotkey-overlay-title="Run a system monitor: btop" { spawn "kitty" "-e" "btop"; }
-    Mod+B hotkey-overlay-title="Spawn bluetui in kitty" { spawn "kitty" "-e" "bluetui"; }
-    Mod+Y hotkey-overlay-title="Open file manager: nautilus" { spawn "nautilus"; }
+    Ctrl+Escape hotkey-overlay-title="Run a System Monitor: btop" { spawn "kitty" "-e" "btop"; }
+    Mod+B hotkey-overlay-title="Spawn Bluetui in Kitty" { spawn "kitty" "-e" "bluetui"; }
+    Mod+Y hotkey-overlay-title="Open File Manager: nautilus" { spawn "nautilus"; }
     // Mod+Y hotkey-overlay-title="Open file manager: dolphin" { spawn "dolphin"; }
     Mod+P { spawn "pulsemeeter"; }
     Mod+M hotkey-overlay-title="mute" { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
@@ -564,7 +565,7 @@ binds {
     // Makes the column "fill the rest of the space".
     Mod+Ctrl+F { expand-column-to-available-width; }
 
-    Mod+C { center-column; }
+    Mod+Shift+C { center-column; }
 
     // Center all fully visible columns on screen.
     Mod+Ctrl+C { center-visible-columns; }

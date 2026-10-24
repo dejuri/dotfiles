@@ -10,7 +10,7 @@ QtObject {
     readonly property color lighter: "#6f6c6c"
     readonly property color lightest: "#f0ebeb"
     readonly property color text: lightest
-    readonly property string font: "JetBrains Mono"
-    readonly property string clock_font: "GothicAlarmClock-KVEl"
+    readonly property string font: "LiberationMono"
+    readonly property string clock_font: "MostWaztedRegular"
     readonly property string os_name: "Radian 13"
 }

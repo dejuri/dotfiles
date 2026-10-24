@@ -9,7 +9,6 @@ Scope {
     id: root
 
     property bool open: false
-
     readonly property string terminal: "kitty"
     readonly property int maxVisible: 7
     readonly property int rowHeight: 52
@@ -28,7 +27,7 @@ Scope {
         color: "transparent"
 
         anchors.top: true
-        margins.top: 72
+        margins.top: 45
         implicitWidth: 640
         implicitHeight: card.implicitHeight
         exclusionMode: ExclusionMode.Ignore
@@ -39,18 +38,52 @@ Scope {
 
         Rectangle {
             id: card
+
+            property bool suppressLeave: false
+
             width: parent.width
             implicitHeight: col.implicitHeight + 28
             radius: 20
             color: Theme.mid
             opacity: root.open ? 1 : 0
-            scale: root.open ? 1 : 0.97
+            scale: root.open ? 1 : 0.9
             transformOrigin: Item.Top
             Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-            Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-
+            Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+            HoverHandler {
+                id: hover
+                onHoveredChanged: {
+                    if (hovered) {
+                        leaveTimer.stop();
+                    } else if (root.open && !card.suppressLeave) {
+                        leaveTimer.restart();
+                    }
+                }
+            }
+            Timer {
+                id: leaveTimer
+                interval: 200
+                onTriggered: if (!hover.hovered) root.open = false
+            }
+            Timer {
+                id: resizeGuard
+                interval: 300
+                onTriggered: card.suppressLeave = false
+            }
+            onImplicitHeightChanged: {
+                card.suppressLeave = true;
+                leaveTimer.stop();
+                resizeGuard.restart();
+            }
+            Connections {
+                target: root
+                function onOpenChanged() {
+                    leaveTimer.stop();
+                    card.suppressLeave = false;
+                }
+            }
             property string query: ""
-
+            
             readonly property var results: {
                 const q = query.trim().toLowerCase();
                 const apps = DesktopEntries.applications.values.filter(a => !a.noDisplay);
@@ -204,6 +237,7 @@ Scope {
                             hoverEnabled: true
                             onEntered: list.currentIndex = row.index
                             onClicked: card.launch(row.modelData)
+                            
                         }
 
                         RowLayout {

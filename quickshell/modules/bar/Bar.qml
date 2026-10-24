@@ -28,7 +28,6 @@ Item {
     }
     Process { id: commandRunner }
 
-    // --- Control Center: Wi-Fi (nmcli) ---
     ListModel { id: wifiNetworksModel }
     Process {
         id: wifiRadioStatusProc
@@ -278,9 +277,10 @@ Item {
 
     PanelWindow {
         exclusiveZone: 0
-        id: startMenu1
+        id: ccroot
         color: "transparent"
-        width: 430
+
+        width: 480
         anchors {
             left: true
             top: true
@@ -289,23 +289,35 @@ Item {
         Timer {
             id: hideTimer
             interval: 150
-            onTriggered: startMenu1.shown = false
+            onTriggered: ccroot.shown = false
+        }
+        Timer {
+            id: leaveTimer
+            interval: 200
+            onTriggered: if (!hover.hovered) ccroot.close()
         }
         property bool expanded: false
         property bool shown: false
         visible: shown
+        IpcHandler {
+            target: "controlcenter"
+            function toggle(): void { ccroot.toggle() }
+        }
+        
         function open()   { hideTimer.stop(); shown = true; expanded = true }
         function close()  { expanded = false; hideTimer.restart() }
         function toggle() { expanded ? close() : open() }
-        MouseArea {
-            id: mainMouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onExited: {
-                if (startMenu1.expanded)
-                    startMenu1.close()
+        HoverHandler {
+            id: hover
+            onHoveredChanged: {
+                if (hovered) {
+                    leaveTimer.stop();
+                } else if (ccroot.expanded) {
+                    leaveTimer.restart();
+                }
             }
         }
+
         Item {
             id: menuContainer
             property var rebootProcess: Process { command: ["sh", "-c", "reboot"] }
@@ -326,12 +338,12 @@ Item {
                 height: 0.71 * Screen.height
                 width: 0.17 * Screen.width
                 transformOrigin: Item.Left
-                scale: startMenu1.expanded ? 1 : 0.85
+                scale: ccroot.expanded ? 1 : 0.9
                 anchors.verticalCenter: parent.verticalCenter
                 radius: 25
                 color: Theme.background
-                opacity: startMenu1.expanded ? 1 : 0
-                Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                opacity: ccroot.expanded ? 1 : 0
+                Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                 Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
                 Rectangle {
                     anchors.left: parent.left
@@ -536,7 +548,7 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         menuContainer.hyprlockProcess.startDetached()
-                                        startMenu1.close()
+                                        ccroot.close()
                                     }
                                     hoverEnabled: false
                                     onEntered: {
@@ -1066,7 +1078,7 @@ Item {
                 anchors.leftMargin: 0.0039 * Screen.width
                 anchors.right: parent.right
                 anchors.top: parent.top
-                anchors.left: tmbg.right
+                anchors.left: timebg.right
             }
 
             Rectangle {
@@ -1079,7 +1091,7 @@ Item {
                 anchors.rightMargin: 0.0039 * Screen.width
                 anchors.left: parent.left
                 anchors.top: parent.top
-                anchors.right: tmbg.left
+                anchors.right: timebg.left
             }
             Rectangle {
                 id: wsbg
@@ -1093,7 +1105,7 @@ Item {
                 Behavior on width { NumberAnimation { duration: 50; } }
             }
             Rectangle {
-                id: startMenu
+                id: startbutton
                 color: Theme.midnext
                 height: 0.027777 * Screen.height
                 radius: 25
@@ -1109,7 +1121,7 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: startMenu1.toggle()
+                    onClicked: ccroot.toggle()
                     onEntered: {
                         parent.color = Theme.primary
                         parent.radius = 5
@@ -1295,7 +1307,7 @@ Item {
                 }                    // Анімація прокручування
             }
             Rectangle {
-                id: tmbg
+                id: timebg
                 color: Theme.midnext
                 height: 0.023611 * Screen.height
                 radius: 14
@@ -1378,7 +1390,7 @@ Item {
                 id: distroIcon
                 anchors {
                     verticalCenter: parent.verticalCenter
-                    horizontalCenter: startMenu.horizontalCenter
+                    horizontalCenter: startbutton.horizontalCenter
                 }
                 color: Theme.text
                 font.family: Theme.font
