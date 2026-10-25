@@ -151,7 +151,9 @@ layout {
     insert-hint {
         // off
         on
-        color "#AFBB7050"
+
+	// FOCUS WINDOW TIP
+        color "#96C2D450"
         // gradient from="#ffbb6680" to="#ffc88080" angle=45 relative-to="workspace-view"
     }
 
