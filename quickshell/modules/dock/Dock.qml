@@ -97,7 +97,7 @@ Item {
                 anchors.centerIn: parent
                 spacing: 8
                 Repeater {
-                    model: ["kitty", "nautilus", "helium-bin", "obs", "lutris", "qbittorrent", "steam", "AyuGram"]
+                    model: Theme.pinned_apps
                     
                     delegate: Rectangle {
                         width: 48; height: 48; color: "transparent"

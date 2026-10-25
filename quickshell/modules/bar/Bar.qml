@@ -271,7 +271,7 @@ Item {
         target: NiriEvents
         function onKeyboardLayoutChanged(index, name) {
             kbtoggler.slid = index;
-            samlayout.text = name;
+            kbLayoutText.text = name;
         }
     }
 
@@ -304,8 +304,8 @@ Item {
             function toggle(): void { ccroot.toggle() }
         }
         
-        function open()   { hideTimer.stop(); shown = true; expanded = true }
-        function close()  { expanded = false; hideTimer.restart() }
+        function open() { hideTimer.stop(); shown = true; expanded = true }
+        function close() { expanded = false; hideTimer.restart() }
         function toggle() { expanded ? close() : open() }
         HoverHandler {
             id: hover
@@ -344,7 +344,7 @@ Item {
                 color: Theme.background
                 opacity: ccroot.expanded ? 1 : 0
                 Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
-                Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                 Rectangle {
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -396,6 +396,7 @@ Item {
                             spacing: 8
                             Rectangle {
                                 id: pob
+
                                 height: 50
                                 width: height
                                 radius: 25
@@ -411,11 +412,14 @@ Item {
                                 }
 
                                 Text {
+                                    id: pobText
+
                                     anchors.centerIn: parent
                                     text: "󰤆"
                                     font.family: Theme.font
                                     color: Theme.text
                                     font.pixelSize: 18
+                                    Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                                 }
 
                                 MouseArea {
@@ -425,19 +429,22 @@ Item {
                                         menuContainer.poweroffProcess.startDetached()
                                         Qt.quit()
                                     }
-                                    hoverEnabled: false
+                                    hoverEnabled: true
                                     onEntered: {
                                         pob.color = Theme.primary
                                         pob.radius = 5
+                                        pobText.color = Theme.background
                                     }
                                     onExited: {
                                         pob.color = Theme.mid
                                         pob.radius = 25
+                                        pobText.color = Theme.text
                                     }
                                 }
                             }
                             Rectangle {
                                 id: rebb
+
                                 height: 50
                                 width: height
                                 radius: 25
@@ -453,11 +460,14 @@ Item {
                                 }
 
                                 Text {
+                                    id: rebbText
+
                                     anchors.centerIn: parent
                                     text: ""
                                     font.family: Theme.font
                                     color: Theme.text
                                     font.pixelSize: 18
+                                    Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                                 }
 
                                 MouseArea {
@@ -467,19 +477,22 @@ Item {
                                         menuContainer.rebootProcess.startDetached()
                                         Qt.quit()
                                     }
-                                    hoverEnabled: false
+                                    hoverEnabled: true
                                     onEntered: {
                                         rebb.color = Theme.primary
                                         rebb.radius = 5
+                                        rebbText.color = Theme.background
                                     }
                                     onExited: {
                                         rebb.color = Theme.mid
                                         rebb.radius = 25
+                                        rebbText.color = Theme.text
                                     }
                                 }
                             }
                             Rectangle {
                                 id: lob
+
                                 height: 50
                                 width: height
                                 radius: 25
@@ -495,11 +508,14 @@ Item {
                                 }
 
                                 Text {
+                                    id: lobText
+
                                     anchors.centerIn: parent
                                     text: "󰍃"
                                     font.family: Theme.font
                                     color: Theme.text
                                     font.pixelSize: 18
+                                    Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                                 }
 
                                 MouseArea {
@@ -508,19 +524,22 @@ Item {
                                     onClicked: {
                                         menuContainer.logoutProcess.startDetached()
                                     }
-                                    hoverEnabled: false
+                                    hoverEnabled: true
                                     onEntered: {
                                         lob.color = Theme.primary
                                         lob.radius = 5
+                                        lobText.color = Theme.background
                                     }
                                     onExited: {
                                         lob.color = Theme.mid
                                         lob.radius = 25
+                                        lobText.color = Theme.text
                                     }
                                 }
                             }
                             Rectangle {
                                 id: hlb
+
                                 height: 50
                                 width: height
                                 radius: 25
@@ -536,11 +555,14 @@ Item {
                                 }
 
                                 Text {
+                                    id: hlbText
+
                                     anchors.centerIn: parent
                                     text: ""
                                     font.family: Theme.font
                                     color: Theme.text
                                     font.pixelSize: 18
+                                    Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                                 }
 
                                 MouseArea {
@@ -550,14 +572,16 @@ Item {
                                         menuContainer.hyprlockProcess.startDetached()
                                         ccroot.close()
                                     }
-                                    hoverEnabled: false
+                                    hoverEnabled: true
                                     onEntered: {
                                         hlb.color = Theme.primary
                                         hlb.radius = 5
+                                        hlbText.color = Theme.background
                                     }
                                     onExited: {
                                         hlb.color = Theme.mid
                                         hlb.radius = 25
+                                        hlbText.color = Theme.text
                                     }
                                 }
                             }
@@ -576,6 +600,7 @@ Item {
                                     radius: 25
                                     Rectangle {
                                         id: ccVolumeBar
+
                                         width: parent.width
                                         anchors.left: parent.left
                                         anchors.right: parent.right
@@ -618,6 +643,7 @@ Item {
                                 // Wifi tile
                                 Column {
                                     id: wifiSection
+
                                     width: parent.width / 2 - 2.5
                                     spacing: 4
 
@@ -660,6 +686,7 @@ Item {
 
                                         Rectangle {
                                             id: wifiChevron
+
                                             anchors.right: parent.right
                                             anchors.top: parent.top
                                             anchors.bottom: parent.bottom
@@ -688,6 +715,7 @@ Item {
 
                                     Item {
                                         id: wifiExpandedWrap
+
                                         width: parent.width
                                         height: wifiExpanded ? wifiExpandedContent.implicitHeight + 8 : 0
                                         clip: true
@@ -848,11 +876,13 @@ Item {
                                 // Bluetooth tile
                                 Column {
                                     id: btSection
+
                                     width: parent.width / 2 - 2.5
                                     spacing: 0
 
                                     Rectangle {
                                         id: btTile
+
                                         width: parent.width
                                         height: 50
                                         radius: 16
@@ -903,6 +933,7 @@ Item {
 
                                         Rectangle {
                                             id: btChevron
+
                                             anchors.right: parent.right
                                             anchors.top: parent.top
                                             anchors.bottom: parent.bottom
@@ -931,6 +962,7 @@ Item {
                                 
                                     Item {
                                         id: btExpandedWrap
+
                                         width: parent.width
                                         height: btExpanded ? btExpandedContent.implicitHeight + 8 : 0
                                         clip: true
@@ -1039,10 +1071,12 @@ Item {
     }
 
     PanelWindow {
+        id: bar
+
         WlrLayershell.layer: WlrLayer.Bottom
         exclusiveZone: 0.03123 *1440
         color: "transparent"
-        id: bar
+        
         anchors {
             top: true
             left: true
@@ -1052,6 +1086,7 @@ Item {
 
         Rectangle {
             id: background
+
             anchors.fill: parent
             color: Theme.background
 
@@ -1070,6 +1105,7 @@ Item {
 
             Rectangle {
                 id: leftDock
+
                 color: Theme.mid
                 anchors.topMargin: 0.00386 *1440
                 anchors.leftMargin: 0.00781 *2560
@@ -1082,6 +1118,7 @@ Item {
             }
             Rectangle {
                 id: wsbg
+
                 color: Theme.midnext
                 height: 0.0236 *1440
                 radius: 15
@@ -1093,6 +1130,7 @@ Item {
             }
             Rectangle {
                 id: startbutton
+
                 color: Theme.midnext
                 height: 0.027777 *1440
                 radius: 25
@@ -1113,16 +1151,19 @@ Item {
                         parent.color = Theme.primary
                         parent.radius = 5
                         distroIcon.scale = 1
+                        distroIcon.color = Theme.background
                     }
                     onExited: {
                         parent.color = Theme.midnext
                         parent.radius = 25
                         distroIcon.scale = 0.75
+                        distroIcon.color = Theme.primary
                     }
                 }
             }
             Rectangle {
                 id: audioDock
+
                 color: Theme.midnext
                 anchors.rightMargin: 0.0078125 *2560
                 anchors.right: parent.right
@@ -1146,8 +1187,16 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    onEntered: { parent.color = Theme.primary; parent.radius = 5 }
-                    onExited: { parent.color = Theme.midnext; parent.radius = 25 }
+                    onEntered: {
+                        parent.color = Theme.primary;
+                        parent.radius = 5;
+                        audioDockText.color = Theme.background;
+                    }
+                    onExited: {
+                        parent.color = Theme.midnext;
+                        parent.radius = 25;
+                        audioDockText.color = Theme.text;
+                    }
                     cursorShape: Qt.PointingHandCursor
                     hoverEnabled: true
                     onWheel: {
@@ -1165,6 +1214,8 @@ Item {
                 }
 
                 Text {
+                    id: audioDockText
+
                     anchors.top: parent
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.left: parent
@@ -1173,10 +1224,12 @@ Item {
                     font.pixelSize: 0.01111 *1440
                     font.family: Theme.font
                     text: Pipewire.defaultAudioSink?.audio?.muted ? "󰖁 няма" : "󰕾 " + Math.round(audioDock.currentVolume * 100) + "%"
+                    Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                 }
 
                 Rectangle {
                     id: volumeBar
+
                     anchors {
                         left: parent.left
                         bottom: parent.bottom
@@ -1199,7 +1252,8 @@ Item {
                 }
             }
             Rectangle {
-                id: kblayoutrect
+                id: kbLayoutRect
+
                 anchors.top: rightDock.top
                 anchors.right: audioDock.left
                 anchors.bottom: rightDock.bottom
@@ -1210,21 +1264,31 @@ Item {
                 Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                 Behavior on radius { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                 Text {
-                    id: samlayout
+                    id: kbLayoutText
+
                     text: slid
                     color: Theme.text
                     font.pixelSize: 0.012 *1440
                     font.family: Theme.font
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
+                    Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                 }
                 MouseArea {
                     id: kbtoggler
                     property var slid: 1
                     anchors.fill: parent
                     hoverEnabled: true
-                    onEntered: { parent.radius = 5; parent.color = Theme.primary }
-                    onExited: { parent.radius = 25; parent.color = Theme.midnext }
+                    onEntered: {
+                        parent.radius = 5;
+                        parent.color = Theme.primary;
+                        kbLayoutText.color = Theme.background;
+                    }
+                    onExited: {
+                        parent.radius = 25;
+                        parent.color = Theme.midnext;
+                        kbLayoutText.color = Theme.text;
+                    }
                     onClicked: {
                         if (slid < 1) {
                             commandRunner.command = ["niri", "msg", "action", "switch-layout", slid + 1]
@@ -1304,8 +1368,25 @@ Item {
                 anchors.left: timeDisplay.left
                 anchors.leftMargin: (-0.0125) *2560
                 width: timeDisplay.width + (0.025 *2560)
-
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onEntered: {
+                        parent.radius = 5;
+                        parent.color = Theme.primary;
+                        timeDisplay.color = Theme.background;
+                    }
+                    onExited: {
+                        parent.radius = 25;
+                        parent.color = Theme.midnext;
+                        timeDisplay.color = Theme.text;
+                    }
+                    onClicked: LauncherState.toggle()
+                    cursorShape: Qt.PointingHandCursor
+                }
                 Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+                Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
+                Behavior on radius { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } } 
             }
             RowLayout {
                 id: workspaces
@@ -1371,6 +1452,8 @@ Item {
                     var now = new Date()
                     currentTime = Qt.formatDate(now, "MMMM dd") + " " + Qt.formatTime(now, "hh:mm:ss")
                 }
+
+                Behavior on color { ColorAnimation { duration: 100; easing.type: Easing.InOutQuad } }
             }
             
             Text {
@@ -1379,13 +1462,14 @@ Item {
                     verticalCenter: parent.verticalCenter
                     horizontalCenter: startbutton.horizontalCenter
                 }
-                color: Theme.text
+                color: Theme.primary
                 font.family: Theme.font
                 text: "󰌽"
                 font.pixelSize:1440 * 0.02289
                 scale: 0.75
                 Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-            }
+                Behavior on color { ColorAnimation { duration: 100 } }
+            }   
         }
     }
 }

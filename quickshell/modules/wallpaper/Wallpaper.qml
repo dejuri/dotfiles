@@ -15,15 +15,12 @@ Item {
         anchors.left: true
         anchors.bottom: true
         anchors.right: true
-        width:2560
-        height:1440 - 0.078125 *1440
         Rectangle {
             id: wallpaper
             anchors.fill: parent
             color: Theme.background
             Image {
-                fillMode: Image.TileHorizontally
-                source: "wallpaper/" + root.wallpaper
+                source: "wallpaper/" + Theme.wallpaper
                 anchors.fill: parent
             }
         }

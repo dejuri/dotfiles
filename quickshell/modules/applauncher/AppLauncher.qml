@@ -3,21 +3,22 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import qs.services
 import '../theme'
 
 Scope {
     id: root
 
-    property bool open: false
+    readonly property bool open: LauncherState.open
     readonly property string terminal: "kitty"
     readonly property int maxVisible: 7
     readonly property int rowHeight: 52
 
     IpcHandler {
         target: "launcher"
-        function toggle(): void { root.open = !root.open; }
-        function show(): void { root.open = true; }
-        function hide(): void { root.open = false; }
+        function toggle(): void { LauncherState.toggle(); }
+        function show(): void { LauncherState.show(); }
+        function hide(): void { LauncherState.hide(); }
     }
 
     PanelWindow {
@@ -63,7 +64,7 @@ Scope {
             Timer {
                 id: leaveTimer
                 interval: 200
-                onTriggered: if (!hover.hovered) root.open = false
+                onTriggered: if (!hover.hovered) LauncherState.open = false
             }
             Timer {
                 id: resizeGuard
@@ -111,7 +112,7 @@ Scope {
 
             function launch(entry) {
                 if (!entry) return;
-                root.open = false;
+                LauncherState.open = false;
                 if (entry.runInTerminal)
                     Quickshell.execDetached([root.terminal, "-e", ...entry.command]);
                 else
@@ -171,7 +172,7 @@ Scope {
 
                         Keys.onPressed: event => {
                             if (event.key === Qt.Key_Escape) {
-                                root.open = false;
+                                LauncherState.open = false;
                             } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
                                 list.incrementCurrentIndex();
                             } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
