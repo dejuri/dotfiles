@@ -16,7 +16,7 @@ Column {
     default property alias content: body.data
 
     spacing: 4
-
+ 
     Rectangle {
         id: tile
         width: parent.width

@@ -11,17 +11,55 @@ Singleton {
     property alias bar: adapter.bar
     property alias dock: adapter.dock
     property alias general: adapter.general
-    Timer {
 
+    property bool isWriting: false
+
+    // Таймер для запису з невеликою затримкою (debounce)
+    Timer {
+        id: writeDebounce
+        interval: 50
+        repeat: false
+        onTriggered: {
+            root.isWriting = true;
+            fileView.writeAdapter();
+            // Одразу після запису на диск робимо швидкий reload,
+            // щоб вкладені об'єкти (кольори тощо) оновилися в інтерфейсі з першого кліку
+            reloadTimer.restart();
+        }
     }
+
+    // Таймер завершення запису
+    Timer {
+        id: reloadTimer
+        interval: 50
+        repeat: false
+        onTriggered: {
+            fileView.reload();
+            root.isWriting = false;
+        }
+    }
+
     FileView {
+        id: fileView
         path: Quickshell.shellPath("settings.json")
         blockLoading: true
         watchChanges: true
-        onFileChanged: reload()
-        onAdapterUpdated: writeAdapter()
+
+        onFileChanged: {
+            if (root.isWriting) return;
+            fileView.reload();
+        }
+
+        onAdapterUpdated: {
+            writeDebounce.restart();
+        }
+
         onLoadFailed: error => {
-            if (error === FileViewError.FileNotFound) writeAdapter()
+            if (error === FileViewError.FileNotFound) {
+                root.isWriting = true;
+                fileView.writeAdapter();
+                root.isWriting = false;
+            }
         }
 
         adapter: JsonAdapter {

@@ -9,5 +9,6 @@ Singleton {
         { name: "Catppuccin Mocha", background: "#1e1e2e", mid: "#313244", midnext: "#45475a", primary: "#cba6f7", lighter: "#6c7086", lightest: "#cdd6f4" },
         { name: "Nord", background: "#2e3440", mid: "#3b4252", midnext: "#4c566a", primary: "#88c0d0", lighter: "#616e88", lightest: "#eceff4" },
         { name: "Gruvbox", background: "#282828", mid: "#3c3836", midnext: "#504945", primary: "#d79921", lighter: "#7c6f64", lightest: "#ebdbb2" },
+        { name: "Bios", lightest: "#1c1c1f", mid: '#b8b8cc', midnext: "#cccce0", primary: "#1f1faf", lighter: "#6c6c8a", background: "#ebebfa" },
     ]
 }

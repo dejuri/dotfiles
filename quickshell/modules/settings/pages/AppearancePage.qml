@@ -17,6 +17,7 @@ SettingsPage {
                     height: 34
                     radius: 10
                     color: ma.containsMouse ? Theme.midnext : Theme.mid
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     Row {
                         anchors.centerIn: parent
                         spacing: 6
@@ -100,8 +101,8 @@ SettingsPage {
             SettingsSwitch { checked: Config.bar.desktopClock; onToggled: v => Config.bar.desktopClock = v }
         }
         SettingsRow {
-            label: "Prefer dark clock"
-            description: "Change clock widget color to dark"
+            label: "Prefer inverted color for clock"
+            description: "Change clock widget color to background color"
             SettingsSwitch { checked: Config.bar.darkClock; onToggled: v => Config.bar.darkClock = v }
         }
     }

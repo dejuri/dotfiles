@@ -45,7 +45,7 @@ Scope {
         Rectangle {
             id: card
             width: 350
-            height: Math.min(950, parent.height - 500)
+            height: Math.min(950, parent.height - 150)
             anchors.verticalCenter: parent.verticalCenter
             radius: 25
             color: Theme.background
