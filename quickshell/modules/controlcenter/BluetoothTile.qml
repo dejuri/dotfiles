@@ -7,7 +7,7 @@ ExpandableTile {
     id: root
 
     text: Bluetooth.enabled ? Icons.bluetoothOn : Icons.bluetoothOff
-    subtitle: "Bluetooth"
+    subtitle: Bluetooth.connectedName ? Bluetooth.connectedName : "Bluetooth"
     fontSize: 20
     checked: Bluetooth.enabled
     onToggled: Bluetooth.setEnabled(!Bluetooth.enabled)

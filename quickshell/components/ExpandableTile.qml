@@ -41,7 +41,7 @@ Column {
                 visible: root.subtitle !== ""
                 text: root.subtitle
                 font.family: Theme.font
-                font.pixelSize: 13
+                font.pixelSize: 17
                 color: tile.fg
                 elide: Text.ElideRight
                 anchors.verticalCenter: parent.verticalCenter
