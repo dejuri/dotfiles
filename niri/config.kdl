@@ -152,7 +152,7 @@ layout {
         // off
         on
 
-	// FOCUS WINDOW TIP
+	// FOCUS WINDOW HINT
         color "#96C2D450"
         // gradient from="#ffbb6680" to="#ffc88080" angle=45 relative-to="workspace-view"
     }

@@ -1,40 +1,38 @@
+import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import QtQuick
-import "../theme"
+import qs.config
 
-Item {
-    id: root
-    property var wallpaper: "prypyat.jpg"
+Scope {
     PanelWindow {
-        WlrLayershell.layer: WlrLayer.Background 
+        WlrLayershell.layer: WlrLayer.Background
+        WlrLayershell.namespace: "quickshell:wallpaper"
         exclusiveZone: 0
         color: "transparent"
         mask: Region {}
-        anchors.top: true
-        anchors.left: true
-        anchors.bottom: true
-        anchors.right: true
+        anchors { top: true; left: true; bottom: true; right: true }
+
         Rectangle {
-            id: wallpaper
             anchors.fill: parent
             color: Theme.background
             Image {
-                source: "wallpaper/" + Theme.wallpaper
                 anchors.fill: parent
+                source: Paths.wallpaper(Config.appearance.wallpaper)
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                sourceSize: Qt.size(parent.width, parent.height)
             }
         }
+
         Rectangle {
-            id: main
+            readonly property int thickness: 100
             anchors.fill: parent
-            anchors.topMargin: -0.0705 *1440
-            anchors.bottomMargin: -0.0705 *1440
-            anchors.leftMargin: -0.0708 *1440
-            anchors.rightMargin: anchors.leftMargin
+            anchors.margins: -thickness
             color: "transparent"
-            radius: 0.0902777777778 *1440 
-            border.width: 0.03984375 *2560
+            radius: thickness + Config.appearance.cornerRadius
+            border.width: thickness
             border.color: Theme.background
+            visible: Config.appearance.cornerRadius > 0
         }
     }
 }
