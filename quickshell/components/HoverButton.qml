@@ -1,7 +1,7 @@
 import QtQuick
 import qs.config
 
-// Round button that changes curves and color on mouse interaction
+// Round button that changes curves and color on hover
 Rectangle {
     id: root
 
@@ -11,7 +11,7 @@ Rectangle {
     property color hoverColor: Theme.primary
     property color idleForeground: Theme.text
     property real baseRadius: height / 2
-    property real hoverRadius: 5
+    property real hoverRadius: 8
     property real labelScale: 1
     property real labelOffsetY: 0
     property bool active: false

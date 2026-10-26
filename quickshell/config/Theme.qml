@@ -21,4 +21,7 @@ Singleton {
     readonly property int animFast: 100
     readonly property int animNormal: 200
     readonly property int animSlow: 300
+
+    //
+    readonly property real dockCell: Config.dock.height * 0.68
 }
