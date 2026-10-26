@@ -7,14 +7,20 @@ import Quickshell.Io
 Singleton {
     property string focusedWindowTitle: ""
     property int keyboardLayoutIndex: 0
-    property string keyboardLayoutName: "us"
+    property string keyboardLayoutName: ""
+    property var keyboardLayoutNames: []
+
     signal keyboardLayoutChanged(int index, string name)
     signal windowOrWorkspaceChanged()
 
     function setLayout(index, name) {
         keyboardLayoutIndex = index
-        keyboardLayoutName = name
-        keyboardLayoutChanged(index, name)
+        keyboardLayoutName = name ? name.substring(0, 2).toLowerCase() : ""
+        keyboardLayoutChanged(index, keyboardLayoutName)
+    }
+
+    Component.onCompleted: {
+        getInitialFocusedWindow()
     }
 
     property Process process: Process {
@@ -22,13 +28,29 @@ Singleton {
         running: true
         stdout: SplitParser {
             onRead: (line) => {
-                if (line.includes("Keyboard layout")) {
-                    if (line.includes("0")) {
-                        setLayout(0, "us")
-                    } else if (line.includes("1")) {
-                        setLayout(1, "укр")
+                if (line.includes("Keyboard layouts changed:")) {
+                    let namesMatch = line.match(/names:\s*\[(.*?)\]/)
+                    let idxMatch = line.match(/current_idx:\s*(\d+)/)
+
+                    if (namesMatch) {
+                        keyboardLayoutNames = namesMatch[1].split(/,\s*/).map(s => s.replace(/^"|"$/g, ''))
+                    }
+                    if (idxMatch) {
+                        let idx = parseInt(idxMatch[1])
+                        let name = keyboardLayoutNames[idx] || ("l" + idx)
+                        setLayout(idx, name)
                     }
                 }
+
+                if (line.includes("Keyboard layout switched:")) {
+                    let match = line.match(/Keyboard layout switched:\s*(\d+)/)
+                    if (match) {
+                        let idx = parseInt(match[1])
+                        let name = keyboardLayoutNames[idx] || ("l" + idx)
+                        setLayout(idx, name)
+                    }
+                }
+
                 if (line.includes("Window") || line.includes("Workspace")) {
                     windowOrWorkspaceChanged()
                 }
@@ -49,8 +71,6 @@ Singleton {
             }
         }
     }
-
-    Component.onCompleted: getInitialFocusedWindow()
 
     function getInitialFocusedWindow() {
         initProcess.command = [
