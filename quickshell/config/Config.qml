@@ -14,7 +14,6 @@ Singleton {
 
     property bool isWriting: false
 
-    // Таймер для запису з невеликою затримкою (debounce)
     Timer {
         id: writeDebounce
         interval: 50
@@ -22,13 +21,10 @@ Singleton {
         onTriggered: {
             root.isWriting = true;
             fileView.writeAdapter();
-            // Одразу після запису на диск робимо швидкий reload,
-            // щоб вкладені об'єкти (кольори тощо) оновилися в інтерфейсі з першого кліку
             reloadTimer.restart();
         }
     }
 
-    // Таймер завершення запису
     Timer {
         id: reloadTimer
         interval: 50
