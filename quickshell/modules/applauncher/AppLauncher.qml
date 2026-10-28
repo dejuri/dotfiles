@@ -179,7 +179,7 @@ Scope {
                     Layout.preferredHeight: Math.min(count, root.maxVisible) * root.rowHeight
                     visible: count > 0
                     clip: true
-                    model: card.results
+                    model: ScriptModel { values: card.results }
                     currentIndex: 0
                     boundsBehavior: Flickable.StopAtBounds
                     highlightMoveDuration: 80

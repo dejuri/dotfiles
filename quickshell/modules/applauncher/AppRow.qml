@@ -24,7 +24,7 @@ Item {
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
-        onEntered: row.hovered()
+        onPositionChanged: row.hovered()
         onClicked: row.activated()
     }
 
