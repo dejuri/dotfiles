@@ -7,7 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
     readonly property var model: windowModel
-
+    
     ListModel { id: windowModel }
 
     Connections {

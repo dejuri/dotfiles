@@ -24,4 +24,5 @@ Singleton {
 
     //
     readonly property real dockCell: Config.dock.height * 0.68
+    readonly property real barScale: Config.bar.height / 45
 }

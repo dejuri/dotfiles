@@ -7,13 +7,12 @@ import qs.services
 Item {
     id: root
     implicitWidth: row.width + 30
-    implicitHeight: 34
+    implicitHeight: Config.bar.height - 11
 
     Rectangle {
         anchors.fill: parent
         radius: 15
         color: Theme.midnext
-        Behavior on width { NumberAnimation { duration: 200 } }
     }
 
     RowLayout {
@@ -27,8 +26,8 @@ Item {
             Rectangle {
                 id: ws
                 property bool hovered: false
-                implicitWidth: 23
-                implicitHeight: 21
+                implicitWidth: root.height * 0.68
+                implicitHeight: root.height * 0.62
                 scale: hovered || model.isActive ? 1 : 0.5
                 radius: hovered ? 5 : 40
                 color: model.isActive ? Theme.primary : Theme.mid
@@ -42,7 +41,7 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: NiriService.focusWorkspace(model.id)
+                    onClicked: NiriService.focusWorkspace(model.wsId)
                     onEntered: ws.hovered = true
                     onExited: ws.hovered = false
                 }

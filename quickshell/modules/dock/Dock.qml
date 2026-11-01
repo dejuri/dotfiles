@@ -6,11 +6,8 @@ import qs.services
 
 // The doooock
 Scope {
-    
     LazyLoader {
-        
         active: Config.dock.enabled
-
         PanelWindow {
             id: dockWindow
             WlrLayershell.layer: WlrLayer.Bottom
@@ -34,6 +31,7 @@ Scope {
                     height: parent.height - 8
                     spacing: Math.max(4, parent.height * 0.06)
 
+                    // Pinned apps
                     Repeater {
                         model: Config.dock.pinnedApps
                         delegate: DockIcon {
@@ -45,30 +43,78 @@ Scope {
                         }
                     }
 
+                    // Separator
                     Rectangle {
                         width: Math.max(2, parent.height * 0.08)
                         height: parent.height * 0.6
                         radius: width / 2
                         color: Theme.lighter
                         anchors.verticalCenter: parent.verticalCenter
-                        visible: Windows.model.count > 0
+                        visible: NiriWindows.model.count > 0
                     }
 
-                    Repeater {
-                        model: Windows.model
-                        delegate: DockIcon {
+                    // Active windows
+                    ListView {
+                        id: windowsListView
+                        orientation: ListView.Horizontal
+                        height: row.height
+                        width: contentWidth
+                        interactive: false
+                        spacing: 0
+
+                        model: NiriWindows.model
+
+                        delegate: Item {
+                            id: slot
+
                             required property string appId
                             required property int winId
                             required property bool isFocused
-                            iconName: appId
-                            focused: isFocused
-                            showHighlight: true
-                            width: row.height
+
+                            property real progress: 0
+
+                            width: (row.height + row.spacing) * progress
                             height: row.height
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton
-                            onClicked: mouse => {
-                                if (mouse.button === Qt.LeftButton) Windows.focus(winId)
-                                else Windows.close(winId)
+
+                            Component.onCompleted: appearAnim.start()
+                            NumberAnimation {
+                                id: appearAnim
+                                target: slot
+                                property: "progress"
+                                from: 0
+                                to: 1
+                                duration: 260
+                                easing.type: Easing.OutCubic
+                            }
+
+                            ListView.onRemove: SequentialAnimation {
+                                PropertyAction { target: slot; property: "ListView.delayRemove"; value: true }
+                                NumberAnimation {
+                                    target: slot
+                                    property: "progress"
+                                    to: 0
+                                    duration: 220
+                                    easing.type: Easing.InCubic
+                                }
+                                PropertyAction { target: slot; property: "ListView.delayRemove"; value: false }
+                            }
+
+                            DockIcon {
+                                x: (slot.width - row.spacing * slot.progress - width) / 2
+                                width: row.height
+                                height: row.height
+
+                                scale: slot.progress
+                                opacity: Math.min(1, slot.progress * 1.5)
+
+                                iconName: slot.appId
+                                focused: slot.isFocused
+                                showHighlight: true
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: mouse => {
+                                    if (mouse.button === Qt.LeftButton) NiriWindows.focus(slot.winId)
+                                    else NiriWindows.close(slot.winId)
+                                }
                             }
                         }
                     }

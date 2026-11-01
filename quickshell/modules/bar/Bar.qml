@@ -8,7 +8,7 @@ PanelWindow {
     id: bar
 
     readonly property int pillMargin: 6
-    readonly property int pillHeight: height - pillMargin * 2
+    readonly property int pillHeight: Config.bar.height - pillMargin * 2
     readonly property int sideMargin: 20
     readonly property int gap: 10
 

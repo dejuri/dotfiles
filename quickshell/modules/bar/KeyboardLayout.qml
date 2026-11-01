@@ -8,7 +8,7 @@ import qs.services
 HoverButton {
     baseColor: Theme.midnext
     text: NiriEvents.keyboardLayoutName
-    fontSize: 17
-    labelOffsetY: -2
+    fontSize: 17 * Theme.barScale
+    labelOffsetY: -2 * Theme.barScale
     onClicked: Quickshell.execDetached(["niri", "msg", "action", "switch-layout", "next"])
 }
