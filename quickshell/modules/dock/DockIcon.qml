@@ -20,8 +20,6 @@ Item {
     readonly property real circleSize: cell * 0.94
     readonly property real baseCenterY: cell / 2 - lift
 
-    // Фіксований розмір: розсування обробляє ListView через transitions.
-    // scale/opacity анімуються ззовні (add/remove transitions).
     width: cell
     height: cell
 

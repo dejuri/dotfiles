@@ -6,6 +6,8 @@ import qs.services
 
 // The doooock
 Scope {
+    DockMenu {}
+
     LazyLoader {
         active: Config.dock.enabled
         PanelWindow {
@@ -35,11 +37,17 @@ Scope {
                     Repeater {
                         model: Config.dock.pinnedApps
                         delegate: DockIcon {
+                            id: pinnedIcon
                             required property string modelData
                             iconName: modelData
                             width: row.height
                             height: row.height
-                            onClicked: Quickshell.execDetached([modelData])
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            onClicked: mouse => {
+                                if (mouse.button === Qt.LeftButton) Quickshell.execDetached([modelData])
+                                else UiState.showDockMenu({ kind: "pinned", appId: modelData,
+                                    x: pinnedIcon.mapToItem(null, pinnedIcon.width / 2, 0).x })
+                            }
                         }
                     }
 
@@ -70,6 +78,9 @@ Scope {
                             required property string appId
                             required property int winId
                             required property bool isFocused
+                            required property int pid
+                            required property int workspaceId
+                            readonly property bool minimized: NiriWindows.isStash(workspaceId)
 
                             property real progress: 0
 
@@ -99,21 +110,29 @@ Scope {
                                 PropertyAction { target: slot; property: "ListView.delayRemove"; value: false }
                             }
 
+
                             DockIcon {
+                                id: winIcon
                                 x: (slot.width - row.spacing * slot.progress - width) / 2
                                 width: row.height
                                 height: row.height
 
                                 scale: slot.progress
-                                opacity: Math.min(1, slot.progress * 1.5)
 
                                 iconName: slot.appId
                                 focused: slot.isFocused
-                                showHighlight: true
+                                showHighlight: slot.minimized ? false : true
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                opacity: Math.min(1, slot.progress * 1.5) * (slot.minimized ? 0.45 : 1)
                                 onClicked: mouse => {
-                                    if (mouse.button === Qt.LeftButton) NiriWindows.focus(slot.winId)
-                                    else NiriWindows.close(slot.winId)
+                                    if (mouse.button === Qt.LeftButton) {
+                                        if (slot.minimized) NiriWindows.restore(slot.winId)
+                                        else NiriWindows.focus(slot.winId)
+                                    } else {
+                                        UiState.showDockMenu({ kind: "window", appId: slot.appId, winId: slot.winId,
+                                                        pid: slot.pid, minimized: slot.minimized,
+                                                        x: winIcon.mapToItem(null, winIcon.width / 2, 0).x })
+                                    }
                                 }
                             }
                         }

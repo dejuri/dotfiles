@@ -39,19 +39,54 @@ Singleton {
             }
             if (found !== -1) {
                 windowModel.setProperty(found, "isFocused", win.is_focused || false)
+                windowModel.setProperty(found, "workspaceId", win.workspace_id ?? -1)
                 if (found !== index) windowModel.move(found, index, 1)
             } else {
                 windowModel.insert(index, {
                     appId: win.app_id || "unknown",
                     winId: win.id,
+                    pid: win.pid ?? 0,
+                    workspaceId: win.workspace_id ?? -1,
                     isFocused: win.is_focused || false
                 })
             }
         })
     }
 
+    readonly property string stashName: "stash"
+
     function focus(id) { Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", id.toString()]) }
     function close(id) { Quickshell.execDetached(["niri", "msg", "action", "close-window", "--id", id.toString()]) }
 
+    function isStash(wsId) {
+        const m = NiriService.workspaces
+        for (let i = 0; i < m.count; i++) {
+            const w = m.get(i)
+            if (w.wsId === wsId) return w.name === stashName
+        }
+        return false
+    }
+
+    function focusedWorkspaceIdx() {
+        const m = NiriService.workspaces
+        for (let i = 0; i < m.count; i++)
+            if (m.get(i).isFocused) return m.get(i).idx
+        return 1
+    }
+
+    function minimize(id) {
+        Quickshell.execDetached(["niri", "msg", "action", "move-window-to-workspace",
+            "--window-id", String(id), "--focus", "false", stashName])
+    }
+
+    function restore(id) {
+        Quickshell.execDetached(["sh", "-c",
+            'niri msg action move-window-to-workspace --window-id "$1" --focus false "$2" && niri msg action focus-window --id "$1"',
+            "sh", String(id), String(focusedWorkspaceIdx())])
+    }
+
+    function kill(pid) {
+        if (pid > 0) Quickshell.execDetached(["kill", "-KILL", String(pid)])
+    }
     Component.onCompleted: loader.run()
 }
