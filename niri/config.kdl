@@ -103,14 +103,20 @@ output "DP-1" {
 
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
-workspace "stash" {
-	open-on-output "D"
-	    layout {
-        // Unset on this workspace.
-        always-center-single-column true
-    }
 
-}
+// WORKSPACES
+workspace "1"
+workspace "2"
+workspace "3"
+workspace "4"
+workspace "5"
+workspace "6"
+workspace "7"
+workspace "8"
+workspace "9"
+workspace "10"
+workspace "stash"
+
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
@@ -329,6 +335,12 @@ window-rule {
 window-rule {
     match app-id="labwc"
     open-maximized-to-edges true
+}
+window-rule {
+    match title=r#"yabridge-host\.exe - Wine Desktop"#
+    
+    open-floating true
+    open-on-workspace "stash"
 }
 // window-rule {
 //     match app-id="fl64.exe"

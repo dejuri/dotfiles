@@ -7,10 +7,9 @@ import qs.services
 Scope {
     id: root
 
-readonly property bool open: UiState.dockMenuOpen
-readonly property var target: UiState.dockMenuTarget
-
-function hide() { UiState.hideDockMenu() }
+    readonly property bool open: UiState.dockMenuOpen
+    readonly property var target: UiState.dockMenuTarget
+    function hide() { UiState.hideDockMenu() }
     readonly property bool isPinned:
         target ? Config.dock.pinnedApps.includes(target.appId) : false
 
@@ -73,7 +72,6 @@ function hide() { UiState.hideDockMenu() }
             onClicked: row.activated()
         }
     }
-
     PanelWindow {
         id: win
 
@@ -82,7 +80,7 @@ function hide() { UiState.hideDockMenu() }
         exclusionMode: ExclusionMode.Ignore
         anchors { top: true; bottom: true; left: true; right: true }
         margins.bottom: Config.dock.height
-        margins.top: Screen.height - Config.dock.height - card.height
+        margins.top: Screen.height - Config.dock.height - card.height - 10
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "quickshell:dockmenu"
         WlrLayershell.keyboardFocus: root.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -108,10 +106,11 @@ function hide() { UiState.hideDockMenu() }
             Timer {
                 id: leaveTimer
                 interval: 200
-                onTriggered: if (!hover.hovered) UiState.dockMenuOpen = false
+                onTriggered: if (!hover.hovered) UiState.hideDockMenu()
             }
+
             width: 190
-            height: col.implicitHeight + 16
+            implicitHeight: col.implicitHeight + 16
             x: Math.max(8, Math.min(win.width - width - 8, wantedX))
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 8
@@ -123,10 +122,11 @@ function hide() { UiState.hideDockMenu() }
             transformOrigin: Item.Bottom
             scale: root.open ? 1 : 0.9
             opacity: root.open ? 1 : 0
+            
             Behavior on scale   { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
-            Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-
-
+            Behavior on opacity { NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutCubic } }
+            Behavior on x { NumberAnimation { duration: UiState.dockMenuAnimX; easing.type: Easing.OutCubic } }
+            
             MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons; onExited: leaveTimer.restart() }
 
             Column {
