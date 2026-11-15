@@ -404,7 +404,7 @@ binds {
     Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
     Ctrl+Escape hotkey-overlay-title="Run a System Monitor: btop" { spawn "kitty" "-e" "btop"; }
     Mod+B hotkey-overlay-title="Spawn Bluetui in Kitty" { spawn "kitty" "-e" "bluetui"; }
-    Mod+Y hotkey-overlay-title="Open File Manager: nautilus" { spawn "nautilus"; }
+    Mod+Y hotkey-overlay-title="Open File Manager: thunar" { spawn "thunar"; }
     // Mod+Y hotkey-overlay-title="Open file manager: dolphin" { spawn "dolphin"; }
     Mod+P { spawn "pulsemeeter"; }
     Mod+M hotkey-overlay-title="mute" { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }

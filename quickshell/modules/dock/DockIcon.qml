@@ -38,8 +38,8 @@ Item {
             x: (root.cell - width) / 2
             y: root.baseCenterY - height / 2
             color: Theme.primary
-            scale: root.focused ? 1 : 0.8
-            Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+            scale: root.focused ? 1 : 0.7
+            Behavior on scale { NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic } }
         }
 
         Image {
