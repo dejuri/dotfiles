@@ -129,9 +129,14 @@ Scope {
                                         if (slot.minimized) NiriWindows.restore(slot.winId)
                                         else NiriWindows.focus(slot.winId)
                                     } else {
-                                        UiState.showDockMenu({ kind: "window", appId: slot.appId, winId: slot.winId,
-                                                        pid: slot.pid, minimized: slot.minimized,
-                                                        x: winIcon.mapToItem(null, winIcon.width / 2, 0).x })
+                                        if (UiState.dockMenuOpen) {
+                                            UiState.hideDockMenu()
+                                        }
+                                        else {
+                                            UiState.showDockMenu({ kind: "window", appId: slot.appId, winId: slot.winId,
+                                                            pid: slot.pid, minimized: slot.minimized,
+                                                            x: winIcon.mapToItem(null, winIcon.width / 2, 0).x })
+                                        }
                                     }
                                 }
                             }

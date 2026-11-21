@@ -278,8 +278,8 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 // spawn-at-startup "waybar"
-spawn-at-startup "qs"
-spawn-at-startup "dbus-update-activation-environment" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri" "DISPLAY=:0"
+spawn-at-startup "/usr/bin/qs"
+spawn-at-startup "dbus-update-activation-environment" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri" "DISPLAY=:0" 
 spawn-at-startup "mako"
 // Pipewire
 spawn-at-startup "killall" "wireplumber"
@@ -399,8 +399,8 @@ binds {
     Mod+T hotkey-overlay-title="Run Telegram" { spawn "AyuGram"; }
     Mod+G hotkey-overlay-title="Run Browser: Helium" { spawn "helium-bin"; }
     // Mod+R hotkey-overlay-title="Run an Application: rofi" { spawn "~/syriscripts/rofi.sh"; }
-    Mod+R hotkey-overlay-title="Run an Application" { spawn "qs" "ipc" "call" "launcher" "toggle"; }
-    Mod+C hotkey-overlay-title="Open Control Center" { spawn "qs" "ipc" "call" "controlcenter" "toggle"; }
+    Mod+R hotkey-overlay-title="Run an Application" { spawn "/usr/bin/qs" "ipc" "call" "launcher" "toggle"; }
+    Mod+C hotkey-overlay-title="Open Control Center" { spawn "/usr/bin/qs" "ipc" "call" "controlcenter" "toggle"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
     Ctrl+Escape hotkey-overlay-title="Run a System Monitor: btop" { spawn "kitty" "-e" "btop"; }
     Mod+B hotkey-overlay-title="Spawn Bluetui in Kitty" { spawn "kitty" "-e" "bluetui"; }

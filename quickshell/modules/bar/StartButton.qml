@@ -10,7 +10,7 @@ HoverButton {
     idleForeground: Theme.primary
     text: Icons.distro
     fontSize: 33 * Theme.barScale
-    labelScale: hovered ? 1 : 0.75
+    labelScale: active || hovered ? 1 : 0.75
     active: UiState.controlCenterOpen
     onClicked: UiState.toggleControlCenter()
 }

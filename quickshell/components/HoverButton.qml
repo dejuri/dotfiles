@@ -31,6 +31,8 @@ Rectangle {
 
     Behavior on color { ColorAnimation { duration: Theme.animFast; easing.type: Easing.InOutQuad } }
     Behavior on radius { NumberAnimation { duration: Theme.animFast; easing.type: Easing.InOutQuad } }
+    Behavior on scale { NumberAnimation { duration: Theme.animFast; easing.type: Easing.InOutQuad } }
+
 
     Text {
         id: label
@@ -53,6 +55,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: root.acceptedButtons
         onClicked: m => root.clicked(m)
+        onPressedChanged: root.scale = pressed ? 0.9 : 1.0
         onWheel: w => root.scrolled(w)
     }
 }

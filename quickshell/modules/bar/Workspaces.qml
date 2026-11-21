@@ -28,14 +28,13 @@ Item {
                 property bool hovered: false
                 implicitWidth: root.height * 0.68
                 implicitHeight: root.height * 0.62
-                scale: hovered || model.isActive ? 1 : 0.5
-                radius: hovered ? 5 : 40
+                scale: model.isActive ? 1 : 0.5
+                radius: 40
                 color: model.isActive ? Theme.primary : Theme.mid
                 visible: index < 10
 
                 Behavior on color { ColorAnimation { duration: Theme.animNormal; easing.type: Easing.InOutQuad } }
                 Behavior on scale { NumberAnimation { duration: Theme.animSlow; easing.type: Easing.OutCubic } }
-                Behavior on radius { NumberAnimation { duration: Theme.animSlow; easing.type: Easing.OutCubic } }
 
                 MouseArea {
                     anchors.fill: parent
