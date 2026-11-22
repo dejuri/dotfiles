@@ -13,7 +13,7 @@ Scope {
     readonly property string cavaConfig: [
         "[general]",
         "bars = " + root.barCount,
-        "framerate = 30",
+        "framerate = 60",
         "[output]",
         "method = raw",
         "raw_target = /dev/stdout",

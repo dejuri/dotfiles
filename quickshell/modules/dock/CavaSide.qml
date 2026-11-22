@@ -57,7 +57,7 @@ Item {
 
                     color: root.barColor
                     opacity: cell.level
-                    Behavior on height { NumberAnimation { duration: Theme.animFast }}
+                    // Behavior on height { NumberAnimation { duration: Theme.animFast }}
                 }
             }
         }
