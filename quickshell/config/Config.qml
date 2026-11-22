@@ -33,6 +33,8 @@ Singleton {
         property bool enabled: true
         property int height: 70
         property var pinnedApps: ["kitty", "nautilus", "helium-bin", "obs", "lutris", "qbittorrent", "steam", "AyuGram"]
+        property bool cavaEnabled: true
+        property int cavaWidth: 3
     }
 
     property QtObject general: QtObject {
@@ -66,7 +68,9 @@ Singleton {
             dock: {
                 enabled: dock.enabled,
                 height: dock.height,
-                pinnedApps: dock.pinnedApps
+                pinnedApps: dock.pinnedApps,
+                cavaEnabled: dock.cavaEnabled,
+                cavaWidth: dock.cavaWidth
             },
             general: {
                 osName: general.osName,

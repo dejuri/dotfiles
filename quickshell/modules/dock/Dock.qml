@@ -17,122 +17,182 @@ Scope {
             anchors { bottom: true; left: true; right: true }
             color: Theme.background
             implicitHeight: Config.dock.height
-            
+
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: event => flick.scrollBy((event.angleDelta.y || event.angleDelta.x))
+            }
+
+            // Cava on left side
+            CavaSide {
+                visible: Config.dock.cavaEnabled
+                mirrored: true
+                anchors {
+                    top: parent.top; bottom: parent.bottom
+                    left: parent.left; right: dockPanel.left
+                    topMargin: 6; bottomMargin: 6
+                    leftMargin: 12; rightMargin: 12
+                }
+            }
+
+            // Cava on right side
+            CavaSide {
+                visible: Config.dock.cavaEnabled
+                anchors {
+                    top: parent.top; bottom: parent.bottom
+                    left: dockPanel.right; right: parent.right
+                    topMargin: 6; bottomMargin: 6
+                    leftMargin: 12; rightMargin: 12
+                }
+            }
+
             // Main dock panel
             Rectangle {
+                id: dockPanel
+                readonly property real sideSpace: 160
+                readonly property real padding: height * 0.4
+                readonly property real maxContentWidth: dockWindow.width - 2 * sideSpace - padding
 
-                height: dockWindow.height - 12
-                width: row.width + (height * 0.4)
+                height: dockWindow.height - 10
+                width: flick.width + padding
                 anchors.centerIn: parent
                 color: Theme.mid
                 radius: height / 2.5
 
-                Row {
-                    id: row
+                Flickable {
+                    id: flick
                     anchors.centerIn: parent
-                    height: parent.height - 8
-                    spacing: Math.max(4, parent.height * 0.06)
+                    height: dockWindow.height
+                    width: Math.min(row.width, dockPanel.maxContentWidth)
+                    contentWidth: row.width
+                    contentHeight: height
+                    clip: true
 
-                    // Pinned apps
-                    Repeater {
-                        model: Config.dock.pinnedApps
-                        delegate: DockIcon {
-                            id: pinnedIcon
-                            required property string modelData
-                            iconName: modelData
-                            width: row.height
-                            height: row.height
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton
-                            onClicked: mouse => {
-                                if (mouse.button === Qt.LeftButton) Quickshell.execDetached([modelData])
-                                else UiState.showDockMenu({ kind: "pinned", appId: modelData,
-                                    x: pinnedIcon.mapToItem(null, pinnedIcon.width / 2, 0).x })
-                            }
-                        }
+                    interactive: contentWidth > width
+                    flickableDirection: Flickable.HorizontalFlick
+                    boundsBehavior: Flickable.StopAtBounds
+                    pressDelay: 120
+
+                    NumberAnimation {
+                        id: wheelAnim
+                        target: flick
+                        property: "contentX"
+                        duration: 140
+                        easing.type: Easing.OutCubic
                     }
 
-                    // Separator
-                    Rectangle {
-                        width: Math.max(2, parent.height * 0.08)
-                        height: parent.height * 0.6
-                        radius: width / 2
-                        color: Theme.lighter
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: NiriWindows.model.count > 0
+                    function scrollBy(delta) {
+                        const max = Math.max(0, contentWidth - width)
+                        const base = wheelAnim.running ? wheelAnim.to : contentX
+                        const to = Math.max(0, Math.min(max, base + delta))
+                        wheelAnim.stop()
+                        wheelAnim.to = to
+                        wheelAnim.start()
                     }
 
-                    // Active windows
-                    ListView {
-                        id: windowsListView
-                        orientation: ListView.Horizontal
-                        height: row.height
-                        width: contentWidth
-                        interactive: false
-                        spacing: 0
 
-                        model: NiriWindows.model
+                    Row {
+                        id: row
+                        height: dockPanel.height - 8
+                        y: (flick.height - height) / 2
+                        spacing: Math.max(4, dockPanel.height * 0.06)
 
-                        delegate: Item {
-                            id: slot
-
-                            required property string appId
-                            required property int winId
-                            required property bool isFocused
-                            required property int pid
-                            required property int workspaceId
-                            readonly property bool minimized: NiriWindows.isStash(workspaceId)
-
-                            property real progress: 0
-
-                            width: (row.height + row.spacing) * progress
-                            height: row.height
-
-                            Component.onCompleted: appearAnim.start()
-                            NumberAnimation {
-                                id: appearAnim
-                                target: slot
-                                property: "progress"
-                                from: 0
-                                to: 1
-                                duration: 260
-                                easing.type: Easing.OutCubic
-                            }
-
-                            ListView.onRemove: SequentialAnimation {
-                                PropertyAction { target: slot; property: "ListView.delayRemove"; value: true }
-                                NumberAnimation {
-                                    target: slot
-                                    property: "progress"
-                                    to: 0
-                                    duration: 220
-                                    easing.type: Easing.InCubic
-                                }
-                                PropertyAction { target: slot; property: "ListView.delayRemove"; value: false }
-                            }
-
-
-                            DockIcon {
-                                id: winIcon
-                                x: (slot.width - row.spacing * slot.progress - width) / 2
+                        // Pinned apps
+                        Repeater {
+                            model: Config.dock.pinnedApps
+                            delegate: DockIcon {
+                                id: pinnedIcon
+                                required property string modelData
+                                iconName: modelData
                                 width: row.height
                                 height: row.height
-
-                                scale: slot.progress
-
-                                iconName: slot.appId
-                                focused: slot.isFocused
-                                showHighlight: slot.minimized ? false : true
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                opacity: Math.min(1, slot.progress * 1.5) * (slot.minimized ? 0.45 : 1)
                                 onClicked: mouse => {
-                                    if (mouse.button === Qt.LeftButton) {
-                                        if (slot.minimized) NiriWindows.restore(slot.winId)
-                                        else NiriWindows.focus(slot.winId)
-                                    } else {
-                                        if (UiState.dockMenuOpen) {
-                                            UiState.hideDockMenu()
-                                        }
-                                        else {
+                                    if (mouse.button === Qt.LeftButton) Quickshell.execDetached([modelData])
+                                    else UiState.showDockMenu({ kind: "pinned", appId: modelData,
+                                        x: pinnedIcon.mapToItem(null, pinnedIcon.width / 2, 0).x })
+                                }
+                            }
+                        }
+
+                        // Separator
+                        Rectangle {
+                            width: Math.max(2, parent.height * 0.08)
+                            height: parent.height * 0.6
+                            radius: width / 2
+                            color: Theme.lighter
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: NiriWindows.model.count > 0
+                        }
+
+                        // Active windows
+                        ListView {
+                            id: windowsListView
+                            orientation: ListView.Horizontal
+                            height: row.height
+                            width: contentWidth
+                            interactive: false
+                            spacing: 0
+
+                            model: NiriWindows.model
+
+                            delegate: Item {
+                                id: slot
+
+                                required property string appId
+                                required property int winId
+                                required property bool isFocused
+                                required property int pid
+                                required property int workspaceId
+                                readonly property bool minimized: NiriWindows.isStash(workspaceId)
+
+                                property real progress: 0
+
+                                width: (row.height + row.spacing) * progress
+                                height: row.height
+
+                                Component.onCompleted: appearAnim.start()
+                                NumberAnimation {
+                                    id: appearAnim
+                                    target: slot
+                                    property: "progress"
+                                    from: 0
+                                    to: 1
+                                    duration: 260
+                                    easing.type: Easing.OutCubic
+                                }
+
+                                ListView.onRemove: SequentialAnimation {
+                                    PropertyAction { target: slot; property: "ListView.delayRemove"; value: true }
+                                    NumberAnimation {
+                                        target: slot
+                                        property: "progress"
+                                        to: 0
+                                        duration: 220
+                                        easing.type: Easing.InCubic
+                                    }
+                                    PropertyAction { target: slot; property: "ListView.delayRemove"; value: false }
+                                }
+
+
+                                DockIcon {
+                                    id: winIcon
+                                    x: (slot.width - row.spacing * slot.progress - width) / 2
+                                    width: row.height
+                                    height: row.height
+
+                                    scale: slot.progress
+
+                                    iconName: slot.appId
+                                    focused: slot.isFocused
+                                    showHighlight: slot.minimized ? false : true
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    opacity: Math.min(1, slot.progress * 1.5) * (slot.minimized ? 0.45 : 1)
+                                    onClicked: mouse => {
+                                        if (mouse.button === Qt.LeftButton) {
+                                            if (slot.minimized) NiriWindows.restore(slot.winId)
+                                            else NiriWindows.focus(slot.winId)
+                                        } else {
                                             UiState.showDockMenu({ kind: "window", appId: slot.appId, winId: slot.winId,
                                                             pid: slot.pid, minimized: slot.minimized,
                                                             x: winIcon.mapToItem(null, winIcon.width / 2, 0).x })

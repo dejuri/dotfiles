@@ -92,6 +92,7 @@ Scope {
                 else if (root.open) leaveTimer.restart()
             }
         }
+        
         // Esc
         Item {
             anchors.fill: parent

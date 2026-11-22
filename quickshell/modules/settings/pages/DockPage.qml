@@ -17,15 +17,32 @@ SettingsPage {
         }
         SettingsRow {
             label: "Dock height"
-            description: "In pixels"
+            description: "Height of the dock (in pixels)"
             SettingsStepper {
                 value: Config.dock.height
-                from: 50; to: 120; step: 2
+                from: 50; to: 120; step: 5
                 onValueModified: v => Config.dock.height = v
             }
         }
     }
 
+    SettingsSection {
+        title: "Cava"
+        SettingsRow {
+            label: "Show cava"
+            description: "Show audio visualizer on dock (requires 'cava' installed)"
+            SettingsSwitch { checked: Config.dock.cavaEnabled; onToggled: v => Config.dock.cavaEnabled = v }
+        }
+        SettingsRow {
+            label: "Cava bar width"
+            description: "Width of the audio visualizer single bar (in pixels)"
+            SettingsStepper {
+                value: Config.dock.cavaWidth
+                from: 2; to: 50; step: 2
+                onValueModified: v => Config.dock.cavaWidth = v
+            }
+        }
+    }
     SettingsSection {
         title: "Pinned apps"
 
