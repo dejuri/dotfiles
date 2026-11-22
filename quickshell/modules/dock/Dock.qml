@@ -6,7 +6,9 @@ import qs.services
 
 // The doooock
 Scope {
-    DockMenu {}
+    DockMenu {
+        id: dm
+    }
 
     LazyLoader {
         active: Config.dock.enabled
@@ -108,13 +110,28 @@ Scope {
                                 height: row.height
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 onClicked: mouse => {
-                                    if (mouse.button === Qt.LeftButton) Quickshell.execDetached([modelData])
-                                    else UiState.showDockMenu({ kind: "pinned", appId: modelData,
-                                        x: pinnedIcon.mapToItem(null, pinnedIcon.width / 2, 0).x })
+                                    if (mouse.button === Qt.LeftButton) {
+                                        Quickshell.execDetached([modelData])
+                                    } else if (mouse.button === Qt.RightButton) {
+                                        const t = UiState.dockMenuTarget
+                                        const isSamePinned = UiState.dockMenuOpen && t &&
+                                            t.kind === "pinned" &&
+                                            t.appId === modelData
+
+                                        if (isSamePinned) {
+                                            UiState.hideDockMenu()
+                                        } else {
+                                            UiState.showDockMenu({
+                                                kind: "pinned",
+                                                appId: modelData,
+                                                x: pinnedIcon.mapToItem(null, pinnedIcon.width / 2, 0).x
+                                            })
+                                        }
+                                    }
                                 }
                             }
                         }
-
+                        
                         // Separator
                         Rectangle {
                             width: Math.max(2, parent.height * 0.08)
@@ -192,10 +209,24 @@ Scope {
                                         if (mouse.button === Qt.LeftButton) {
                                             if (slot.minimized) NiriWindows.restore(slot.winId)
                                             else NiriWindows.focus(slot.winId)
-                                        } else {
-                                            UiState.showDockMenu({ kind: "window", appId: slot.appId, winId: slot.winId,
-                                                            pid: slot.pid, minimized: slot.minimized,
-                                                            x: winIcon.mapToItem(null, winIcon.width / 2, 0).x })
+                                        } else if (mouse.button === Qt.RightButton) {
+                                            const t = UiState.dockMenuTarget
+                                            const isSameWindowMenu = UiState.dockMenuOpen && t &&
+                                                t.kind === "window" &&
+                                                t.winId === slot.winId
+
+                                            if (isSameWindowMenu) {
+                                                UiState.hideDockMenu()
+                                            } else {
+                                                UiState.showDockMenu({
+                                                    kind: "window",
+                                                    appId: slot.appId,
+                                                    winId: slot.winId,
+                                                    pid: slot.pid,
+                                                    minimized: slot.minimized,
+                                                    x: winIcon.mapToItem(null, winIcon.width / 2, 0).x
+                                                })
+                                            }
                                         }
                                     }
                                 }
