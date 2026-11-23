@@ -105,8 +105,20 @@ Scope {
                         VolumeSlider {
                             width: parent.width
                             value: Audio.volume
-                            icon: Audio.muted ? Icons.volumeMuted : Icons.volumeHigh
+                            muted: Audio.muted
+                            icon: Audio.icon
                             onMoved: v => Audio.setVolume(v)
+                            onIconClicked: Audio.toggleMute()
+                        }
+
+                        VolumeSlider {
+                            visible: !!Audio.source
+                            width: parent.width
+                            value: Audio.micVolume
+                            muted: Audio.micMuted
+                            icon: Audio.micMuted ? Icons.microphoneOff : Icons.microphone
+                            onMoved: v => Audio.setMicVolume(v)
+                            onIconClicked: Audio.toggleMicMute()
                         }
 
                         Row {

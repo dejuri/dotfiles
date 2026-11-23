@@ -22,4 +22,22 @@ SettingsPage {
             SettingsTextField { value: Config.general.lockCommand; onEdited: v => Config.general.lockCommand = v }
         }
     }
+
+    SettingsSection {
+        title: "Sound"
+        SettingsRow {
+            label: "Volume popup"
+            description: "Show it when volume changes, for example with keyboard keys"
+            SettingsSwitch { checked: Config.sound.osdEnabled; onToggled: v => Config.sound.osdEnabled = v }
+        }
+        SettingsRow {
+            label: "Popup time"
+            description: "In milliseconds"
+            SettingsStepper {
+                value: Config.sound.osdTimeout
+                from: 400; to: 5000; step: 100
+                onValueModified: v => Config.sound.osdTimeout = v
+            }
+        }
+    }
 }

@@ -8,6 +8,8 @@ import qs.modules.dock
 import qs.modules.clock
 import qs.modules.wallpaper
 import qs.modules.applauncher
+import qs.modules.volumemenu
+import qs.modules.osd
 
 ShellRoot {
     Wallpaper {}
@@ -15,6 +17,8 @@ ShellRoot {
     Bar {}
     Dock {}
     ControlCenter {}
+    VolumeMenu {}
+    VolumeOsd {}
     AppLauncher {}
     SettingsWindow {}
 }

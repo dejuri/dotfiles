@@ -24,5 +24,12 @@ Singleton {
     readonly property string apps: "󱂩"
     readonly property string info: "󰋽"
     readonly property string close: "󰅖"
+    readonly property string volumeLow: "󰕿"
+    readonly property string volumeMedium: "󰖀"
+    readonly property string microphone: "󰍬"
+    readonly property string microphoneOff: "󰍭"
+    readonly property string headphones: "󰋋"
+    readonly property string speaker: "󰓃"
+    readonly property string check: "󰄬"
     readonly property string plus: "󰐕"
 }

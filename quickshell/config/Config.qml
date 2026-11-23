@@ -43,6 +43,11 @@ Singleton {
         property string lockCommand: "hyprlock"
     }
 
+    property QtObject sound: QtObject {
+        property bool osdEnabled: true
+        property int osdTimeout: 1200
+    }
+
     function snapshot() {
         return {
             appearance: {
@@ -76,6 +81,10 @@ Singleton {
                 osName: general.osName,
                 terminal: general.terminal,
                 lockCommand: general.lockCommand
+            },
+            sound: {
+                osdEnabled: sound.osdEnabled,
+                osdTimeout: sound.osdTimeout
             }
         }
     }
