@@ -27,7 +27,7 @@ Scope {
         color: "transparent"
 
         anchors.top: true
-        margins.top: 45
+        margins.top: Config.bar.height + 6
         implicitWidth: 640
         implicitHeight: card.implicitHeight
         exclusionMode: ExclusionMode.Ignore
