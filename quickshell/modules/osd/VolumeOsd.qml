@@ -25,7 +25,7 @@ Scope {
         id: check
         interval: 40
         onTriggered: {
-            if (!root.ready || !Config.sound.osdEnabled || UiState.volumeMenuOpen) return
+            if (!root.ready || !Config.sound.osdEnabled) return
             if (Date.now() - root.sinkChangedAt < 300) return
             root.shown = true
             hideTimer.restart()
