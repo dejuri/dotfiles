@@ -26,8 +26,24 @@ Singleton {
         }
     }
 
+    // Order set by dragging icons in the dock (window ids, not saved between sessions)
+    property var customOrder: []
+
+    function moveWindow(from, to) {
+        if (from === to || to < 0 || to >= windowModel.count) return
+        windowModel.move(from, to, 1)
+        const ids = []
+        for (let i = 0; i < windowModel.count; i++) ids.push(windowModel.get(i).winId)
+        customOrder = ids
+    }
+
     function update(newWindows) {
-        newWindows.sort((a, b) => a.id - b.id)
+        customOrder = customOrder.filter(id => newWindows.some(w => w.id === id))
+        const rank = id => { const i = customOrder.indexOf(id); return i === -1 ? Infinity : i }
+        newWindows.sort((a, b) => {
+            const ra = rank(a.id), rb = rank(b.id)
+            return ra === rb ? a.id - b.id : (ra < rb ? -1 : 1)
+        })
         for (let i = windowModel.count - 1; i >= 0; i--) {
             if (!newWindows.some(w => w.id === windowModel.get(i).winId))
                 windowModel.remove(i)

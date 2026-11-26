@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.config
+import qs.components
 
 // Just top bar
 PanelWindow {
@@ -59,15 +60,35 @@ PanelWindow {
             anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: bar.pillMargin - 0.5 }
         }
 
-        // Right side
-        VolumeIndicator {
-            id: volume
-            width: 200
+        // Right side, items can be dragged to change order (saved in Config.bar.rightItems)
+        Component { id: statsWidget;    SystemMonitor   { anchors.fill: parent } }
+        Component { id: keyboardWidget; KeyboardLayout  { anchors.fill: parent } }
+        Component { id: volumeWidget;   VolumeIndicator { anchors.fill: parent } }
+
+        ReorderList {
+            id: rightItems
+            readonly property var widths: ({ stats: 165, keyboard: 51, volume: 200 })
+
             anchors { right: parent.right; rightMargin: bar.sideMargin; top: rightDock.top; bottom: rightDock.bottom }
-        }
-        KeyboardLayout {
-            width: 51
-            anchors { right: volume.left; rightMargin: 6; top: rightDock.top; bottom: rightDock.bottom }
+            width: contentWidth
+            orientation: ListView.Horizontal
+            spacing: 6
+            keys: Config.bar.rightItems
+            onReordered: list => Config.bar.rightItems = list
+
+            delegate: ReorderSlot {
+                id: slot
+                required property string key
+                width: rightItems.widths[key] ?? 60
+                height: rightItems.height
+
+                Loader {
+                    anchors.fill: parent
+                    sourceComponent: slot.key === "stats" ? statsWidget
+                                   : slot.key === "keyboard" ? keyboardWidget
+                                   : slot.key === "volume" ? volumeWidget : null
+                }
+            }
         }
     }
 }

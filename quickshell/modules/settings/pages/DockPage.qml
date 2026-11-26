@@ -53,39 +53,71 @@ SettingsPage {
             font.pixelSize: 12
         }
 
-        Repeater {
-            model: Config.dock.pinnedApps
-            delegate: Rectangle {
-                required property string modelData
-                required property int index
-                width: parent.width; height: 36; radius: 10
-                color: Theme.mid
+        // Drag a row to change the order; arrows are kept as a fallback
+        ReorderList {
+            id: pinnedList
+            orientation: ListView.Vertical
+            width: parent.width
+            height: contentHeight
+            spacing: 6
+            keys: Config.dock.pinnedApps
+            onReordered: list => page.updateApps(list)
 
-                Text {
-                    anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
-                    text: modelData
-                    color: Theme.text
-                    font.family: Theme.font
-                    font.pixelSize: 14
-                }
-                Row {
-                    anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter }
-                    spacing: 4
-                    HoverButton {
-                        width: 28; height: 28; text: "↑"; fontSize: 14; baseColor: Theme.midnext
-                        visible: index > 0
-                        onClicked: {
-                            const a = Config.dock.pinnedApps.slice()
-                            a.splice(index - 1, 0, a.splice(index, 1)[0])
-                            page.updateApps(a)
-                        }
+            delegate: ReorderSlot {
+                id: rowSlot
+                required property string key
+                width: pinnedList.width
+                height: 36
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 10
+                    color: rowSlot.dragging ? Theme.midnext : Theme.mid
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                    Text {
+                        id: grip
+                        anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                        text: "⋮⋮"
+                        color: Theme.lighter
+                        font.family: Theme.font
+                        font.pixelSize: 16
                     }
-                    HoverButton {
-                        width: 28; height: 28; text: Icons.close; fontSize: 14; baseColor: Theme.midnext
-                        onClicked: {
-                            const a = Config.dock.pinnedApps.slice()
-                            a.splice(index, 1)
-                            page.updateApps(a)
+                    Text {
+                        anchors { left: grip.right; leftMargin: 8; verticalCenter: parent.verticalCenter }
+                        text: rowSlot.key
+                        color: Theme.text
+                        font.family: Theme.font
+                        font.pixelSize: 14
+                    }
+                    Row {
+                        anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter }
+                        spacing: 4
+                        HoverButton {
+                            width: 28; height: 28; text: "↑"; fontSize: 14; baseColor: Theme.midnext
+                            visible: rowSlot.index > 0
+                            onClicked: {
+                                const a = Config.dock.pinnedApps.slice()
+                                a.splice(rowSlot.index - 1, 0, a.splice(rowSlot.index, 1)[0])
+                                page.updateApps(a)
+                            }
+                        }
+                        HoverButton {
+                            width: 28; height: 28; text: "↓"; fontSize: 14; baseColor: Theme.midnext
+                            visible: rowSlot.index < pinnedList.count - 1
+                            onClicked: {
+                                const a = Config.dock.pinnedApps.slice()
+                                a.splice(rowSlot.index + 1, 0, a.splice(rowSlot.index, 1)[0])
+                                page.updateApps(a)
+                            }
+                        }
+                        HoverButton {
+                            width: 28; height: 28; text: Icons.close; fontSize: 14; baseColor: Theme.midnext
+                            onClicked: {
+                                const a = Config.dock.pinnedApps.slice()
+                                a.splice(rowSlot.index, 1)
+                                page.updateApps(a)
+                            }
                         }
                     }
                 }

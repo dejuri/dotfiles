@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.config
+import qs.components
 import qs.services
 
 // The doooock
@@ -70,10 +71,9 @@ Scope {
                     contentHeight: height
                     clip: true
 
-                    interactive: contentWidth > width
+                    interactive: false
                     flickableDirection: Flickable.HorizontalFlick
                     boundsBehavior: Flickable.StopAtBounds
-                    pressDelay: 120
 
                     NumberAnimation {
                         id: wheelAnim
@@ -99,39 +99,52 @@ Scope {
                         y: (flick.height - height) / 2
                         spacing: Math.max(4, dockPanel.height * 0.06)
 
-                        // Pinned apps
-                        Repeater {
-                            model: Config.dock.pinnedApps
-                            delegate: DockIcon {
-                                id: pinnedIcon
-                                required property string modelData
-                                iconName: modelData
+                        // Pinned apps, drag to reorder
+                        ReorderList {
+                            id: pinnedList
+                            orientation: ListView.Horizontal
+                            height: row.height
+                            width: contentWidth
+                            spacing: row.spacing
+                            keys: Config.dock.pinnedApps
+                            onReordered: list => Config.dock.pinnedApps = list
+
+                            delegate: ReorderSlot {
+                                id: pinnedSlot
+                                required property string key
                                 width: row.height
                                 height: row.height
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: mouse => {
-                                    if (mouse.button === Qt.LeftButton) {
-                                        Quickshell.execDetached([modelData])
-                                    } else if (mouse.button === Qt.RightButton) {
-                                        const t = UiState.dockMenuTarget
-                                        const isSamePinned = UiState.dockMenuOpen && t &&
-                                            t.kind === "pinned" &&
-                                            t.appId === modelData
 
-                                        if (isSamePinned) {
-                                            UiState.hideDockMenu()
-                                        } else {
-                                            UiState.showDockMenu({
-                                                kind: "pinned",
-                                                appId: modelData,
-                                                x: pinnedIcon.mapToItem(null, pinnedIcon.width / 2, 0).x
-                                            })
+                                DockIcon {
+                                    id: pinnedIcon
+                                    iconName: pinnedSlot.key
+                                    width: pinnedSlot.width
+                                    height: pinnedSlot.height
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    onClicked: mouse => {
+                                        if (mouse.button === Qt.LeftButton) {
+                                            Quickshell.execDetached([pinnedSlot.key])
+                                        } else if (mouse.button === Qt.RightButton) {
+                                            const t = UiState.dockMenuTarget
+                                            const isSamePinned = UiState.dockMenuOpen && t &&
+                                                t.kind === "pinned" &&
+                                                t.appId === pinnedSlot.key
+
+                                            if (isSamePinned) {
+                                                UiState.hideDockMenu()
+                                            } else {
+                                                UiState.showDockMenu({
+                                                    kind: "pinned",
+                                                    appId: pinnedSlot.key,
+                                                    x: pinnedIcon.mapToItem(null, pinnedIcon.width / 2, 0).x
+                                                })
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                        
+
                         // Separator
                         Rectangle {
                             width: Math.max(2, parent.height * 0.08)
@@ -153,7 +166,14 @@ Scope {
 
                             model: NiriWindows.model
 
-                            delegate: Item {
+                            // Used by ReorderSlot while dragging
+                            function moveItem(from, to) { NiriWindows.moveWindow(from, to) }
+                            function commit() {}
+
+                            move: Transition { NumberAnimation { properties: "x"; duration: 150; easing.type: Easing.OutCubic } }
+                            displaced: Transition { NumberAnimation { properties: "x"; duration: 150; easing.type: Easing.OutCubic } }
+
+                            delegate: ReorderSlot {
                                 id: slot
 
                                 required property string appId

@@ -32,4 +32,6 @@ Singleton {
     readonly property string speaker: "󰓃"
     readonly property string check: "󰄬"
     readonly property string plus: "󰐕"
+    readonly property string cpu: "󰻠"
+    readonly property string memory: "󰍛"
 }

@@ -7,6 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
+
     property QtObject appearance: QtObject {
         property string wallpaper: "my-forest.jpg"
         property int cornerRadius: 28
@@ -19,6 +20,7 @@ Singleton {
             property string primary: "#d4d2d4"
             property string lighter: "#6c6c7a"
             property string lightest: "#ebebfa"
+            property string red: '#e24a4a'
         }
     }
 
@@ -27,6 +29,8 @@ Singleton {
         property string clockFormat: "MMMM dd hh:mm:ss"
         property bool desktopClock: true
         property bool darkClock: false
+        // Order of the widgets on the right side of the bar (left to right)
+        property var rightItems: ["stats", "keyboard", "volume"]
     }
 
     property QtObject dock: QtObject {
@@ -40,7 +44,6 @@ Singleton {
     property QtObject general: QtObject {
         property string osName: "Radian 13"
         property string terminal: "kitty"
-        property string lockCommand: "hyprlock"
     }
 
     property QtObject sound: QtObject {
@@ -61,14 +64,16 @@ Singleton {
                     midnext: appearance.colors.midnext,
                     primary: appearance.colors.primary,
                     lighter: appearance.colors.lighter,
-                    lightest: appearance.colors.lightest
+                    lightest: appearance.colors.lightest,
+                    red: appearance.colors.red
                 }
             },
             bar: {
                 height: bar.height,
                 clockFormat: bar.clockFormat,
                 desktopClock: bar.desktopClock,
-                darkClock: bar.darkClock
+                darkClock: bar.darkClock,
+                rightItems: bar.rightItems
             },
             dock: {
                 enabled: dock.enabled,
@@ -80,7 +85,6 @@ Singleton {
             general: {
                 osName: general.osName,
                 terminal: general.terminal,
-                lockCommand: general.lockCommand
             },
             sound: {
                 osdEnabled: sound.osdEnabled,
