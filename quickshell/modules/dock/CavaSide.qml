@@ -55,9 +55,8 @@ Item {
                     height: Math.max(2, cell.level * cell.height)
                     anchors.bottom: parent.bottom
 
-                    color: root.barColor
-                    opacity: cell.level
-                    // Behavior on height { NumberAnimation { duration: Theme.animFast }}
+                    color: Theme.primary
+                    opacity: 1 / 3 + cell.level / 1.5
                 }
             }
         }
