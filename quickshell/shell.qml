@@ -10,6 +10,7 @@ import qs.modules.wallpaper
 import qs.modules.applauncher
 import qs.modules.volumemenu
 import qs.modules.osd
+import qs.lockscreen
 
 ShellRoot {
     Wallpaper {}
@@ -21,4 +22,5 @@ ShellRoot {
     VolumeOsd {}
     AppLauncher {}
     SettingsWindow {}
+    LockScreen {}
 }
