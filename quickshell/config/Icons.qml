@@ -16,7 +16,7 @@ Singleton {
     readonly property string chevron: "󰅀"
     readonly property string bluetoothOn: "󰂯"
     readonly property string bluetoothOff: "󰂲"
-    readonly property string distro: "󰌽"
+    readonly property string distro: ""
     readonly property string search: ""
     readonly property string settings: "󰒓"
     readonly property string palette: "󰏘"
@@ -32,6 +32,6 @@ Singleton {
     readonly property string speaker: "󰓃"
     readonly property string check: "󰄬"
     readonly property string plus: "󰐕"
-    readonly property string cpu: "󰻠"
-    readonly property string memory: "󰍛"
+    readonly property string cpu: ""
+    readonly property string memory: ""
 }
