@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.config
 import qs.components
+import qs.services
 
 // Just top bar
 PanelWindow {
@@ -63,11 +64,12 @@ PanelWindow {
         // Right side, items can be dragged to change order (saved in Config.bar.rightItems)
         Component { id: statsWidget;    SystemMonitor   { anchors.fill: parent } }
         Component { id: keyboardWidget; KeyboardLayout  { anchors.fill: parent } }
+        Component { id: batteryWidget;  BatteryIndicator { anchors.fill: parent } }
         Component { id: volumeWidget;   VolumeIndicator { anchors.fill: parent } }
 
         ReorderList {
             id: rightItems
-            readonly property var widths: ({ stats: 165, keyboard: 51, volume: 200 })
+            readonly property var widths: ({ stats: 165, keyboard: 51, battery: 105, volume: 200 })
 
             anchors { right: parent.right; rightMargin: bar.sideMargin; top: rightDock.top; bottom: rightDock.bottom }
             width: contentWidth
@@ -79,13 +81,14 @@ PanelWindow {
             delegate: ReorderSlot {
                 id: slot
                 required property string key
-                width: rightItems.widths[key] ?? 60
+                width: (key === "battery" && !Battery.present) ? 0 : (rightItems.widths[key] ?? 60)
                 height: rightItems.height
 
                 Loader {
                     anchors.fill: parent
                     sourceComponent: slot.key === "stats" ? statsWidget
                                    : slot.key === "keyboard" ? keyboardWidget
+                                   : slot.key === "battery" ? batteryWidget
                                    : slot.key === "volume" ? volumeWidget : null
                 }
             }

@@ -1,0 +1,459 @@
+diff -u a/components/LiquidBattery.qml b/components/LiquidBattery.qml
+--- a/components/LiquidBattery.qml	1970-01-01 00:00:00.000000000 +0000
++++ b/components/LiquidBattery.qml	2026-11-28 12:30:14.430577031 +0000
+@@ -0,0 +1,111 @@
++import QtQuick
++import qs.config
++
++// Battery icon with a waving liquid inside
++Item {
++    id: root
++
++    property real level: 0.5          // 0..1
++    property bool charging: false
++    property bool low: false
++    property bool lit: false          // drawn on a bright (hovered) background
++    property bool animated: true
++
++    readonly property color ink: lit ? Theme.background : Theme.primary
++    readonly property color liquid: low ? Theme.red : ink
++
++    // Level that is really drawn, it slowly follows `level`
++    property real shown: level
++    Behavior on shown { NumberAnimation { duration: 900; easing.type: Easing.OutCubic } }
++
++    property real phase: 0
++    NumberAnimation on phase {
++        from: 0; to: Math.PI * 2
++        duration: root.charging ? 1400 : 2600
++        loops: Animation.Infinite
++        running: root.visible && root.animated
++    }
++
++    // Blink when the battery is almost empty
++    property real pulse: 1
++    SequentialAnimation {
++        running: root.low
++        loops: Animation.Infinite
++        NumberAnimation { target: root; property: "pulse"; to: 0.35; duration: 600; easing.type: Easing.InOutSine }
++        NumberAnimation { target: root; property: "pulse"; to: 1; duration: 600; easing.type: Easing.InOutSine }
++        onRunningChanged: if (!running) root.pulse = 1
++    }
++
++    onPhaseChanged: canvas.requestPaint()
++    onShownChanged: canvas.requestPaint()
++    onLiquidChanged: canvas.requestPaint()
++
++    readonly property real nubWidth: Math.max(2, width * 0.08)
++    readonly property real borderWidth: Math.max(1.5, height * 0.12)
++
++    Rectangle {
++        id: body
++        width: root.width - root.nubWidth - 1
++        height: root.height
++        radius: height * 0.32
++        color: "transparent"
++        border.width: root.borderWidth
++        border.color: root.ink
++        opacity: root.pulse
++        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
++
++        Canvas {
++            id: canvas
++            anchors.fill: parent
++            anchors.margins: root.borderWidth + 1
++            onWidthChanged: requestPaint()
++            onHeightChanged: requestPaint()
++            Component.onCompleted: requestPaint()
++
++            function wave(ctx, w, h, top, amp, ph, cycles, style) {
++                ctx.beginPath()
++                ctx.moveTo(0, h)
++                for (let x = 0; x <= w; x += 1)
++                    ctx.lineTo(x, top + Math.sin(x / w * Math.PI * 2 * cycles + ph) * amp)
++                ctx.lineTo(w, h)
++                ctx.closePath()
++                ctx.fillStyle = style
++                ctx.fill()
++            }
++
++            onPaint: {
++                const ctx = getContext("2d")
++                const w = width, h = height
++                ctx.clearRect(0, 0, w, h)
++                const lvl = root.shown
++                if (lvl <= 0.01 || w <= 0 || h <= 0) return
++
++                ctx.save()
++                ctx.beginPath()
++                ctx.roundedRect(0, 0, w, h, body.radius * 0.6, body.radius * 0.6)
++                ctx.clip()
++
++                const top = h * (1 - lvl)
++                // flat surface when full or almost empty
++                const edge = Math.min(1, lvl * 8, (1 - lvl) * 8)
++                const amp = h * 0.16 * edge
++                const c = root.liquid
++                wave(ctx, w, h, top, amp, root.phase + 1.9, 1.1, Qt.rgba(c.r, c.g, c.b, 0.4))
++                wave(ctx, w, h, top, amp * 0.85, -root.phase, 1.5, c)
++                ctx.restore()
++            }
++        }
++    }
++
++    // Battery terminal
++    Rectangle {
++        x: body.width + 1
++        anchors.verticalCenter: body.verticalCenter
++        width: root.nubWidth
++        height: root.height * 0.4
++        radius: width / 2
++        color: root.ink
++        opacity: root.pulse
++        Behavior on color { ColorAnimation { duration: Theme.animFast } }
++    }
++}
+diff -u a/components/ReorderList.qml b/components/ReorderList.qml
+--- a/components/ReorderList.qml	2026-11-28 12:30:00.257024288 +0000
++++ b/components/ReorderList.qml	2026-11-28 12:30:00.289531850 +0000
+@@ -25,6 +25,24 @@
+         const want = root.keys ?? []
+         const have = current()
+         if (want.length === have.length && want.every((k, i) => k === have[i])) return
++
++        // One item added or removed: change only that one, so it can be animated
++        if (want.length === have.length + 1) {
++            let i = 0
++            while (i < have.length && have[i] === want[i]) i++
++            if (want.slice(i + 1).every((k, j) => k === have[i + j])) {
++                store.insert(i, { key: want[i] })
++                return
++            }
++        } else if (have.length === want.length + 1) {
++            let i = 0
++            while (i < want.length && have[i] === want[i]) i++
++            if (have.slice(i + 1).every((k, j) => k === want[i + j])) {
++                store.remove(i)
++                return
++            }
++        }
++
+         store.clear()
+         want.forEach(k => store.append({ key: k }))
+     }
+@@ -46,4 +64,17 @@
+ 
+     move: Transition { NumberAnimation { properties: "x,y"; duration: 150; easing.type: Easing.OutCubic } }
+     displaced: Transition { NumberAnimation { properties: "x,y"; duration: 150; easing.type: Easing.OutCubic } }
++
++    add: Transition {
++        ParallelAnimation {
++            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 220 }
++            NumberAnimation { property: "scale"; from: 0.5; to: 1; duration: 280; easing.type: Easing.OutBack }
++        }
++    }
++    remove: Transition {
++        ParallelAnimation {
++            NumberAnimation { property: "opacity"; to: 0; duration: 160 }
++            NumberAnimation { property: "scale"; to: 0.5; duration: 180; easing.type: Easing.InCubic }
++        }
++    }
+ }
+diff -u a/config/Config.qml b/config/Config.qml
+--- a/config/Config.qml	2026-11-28 12:30:00.257055364 +0000
++++ b/config/Config.qml	2026-11-28 12:30:00.288417793 +0000
+@@ -29,7 +29,8 @@
+         property bool desktopClock: true
+         property bool darkClock: false
+         // Order of the widgets on the right side of the bar (left to right)
+-        property var rightItems: ["stats", "keyboard", "volume"]
++        property var rightItems: ["stats", "keyboard", "battery", "volume"]
++        property bool batteryPercent: true
+     }
+ 
+     property QtObject dock: QtObject {
+@@ -72,7 +73,8 @@
+                 clockFormat: bar.clockFormat,
+                 desktopClock: bar.desktopClock,
+                 darkClock: bar.darkClock,
+-                rightItems: bar.rightItems
++                rightItems: bar.rightItems,
++                batteryPercent: bar.batteryPercent
+             },
+             dock: {
+                 enabled: dock.enabled,
+@@ -109,6 +111,20 @@
+         }
+     }
+ 
++    // Old settings.json may not know about newer bar widgets
++    function addMissingBarItems() {
++        const known = ["stats", "keyboard", "battery", "volume"]
++        const have = bar.rightItems.filter(k => known.includes(k))
++        const missing = known.filter(k => !have.includes(k))
++        if (missing.length === 0 && have.length === bar.rightItems.length) return
++        const vol = have.indexOf("volume")
++        if (missing.includes("battery") && vol !== -1) {
++            have.splice(vol, 0, "battery")
++            missing.splice(missing.indexOf("battery"), 1)
++        }
++        bar.rightItems = [...have, ...missing]
++    }
++
+     Timer {
+         id: writeDebounce
+         interval: 200
+@@ -132,6 +148,7 @@
+             } catch (e) {
+                 console.warn("Config: bad settings.json:", e)
+             }
++            root.addMissingBarItems()
+             root.lastSaved = root.serialized
+         }
+ 
+diff -u a/modules/bar/Bar.qml b/modules/bar/Bar.qml
+--- a/modules/bar/Bar.qml	2026-11-28 12:30:00.256548976 +0000
++++ b/modules/bar/Bar.qml	2026-11-28 12:30:00.289075286 +0000
+@@ -3,6 +3,7 @@
+ import Quickshell.Wayland
+ import qs.config
+ import qs.components
++import qs.services
+ 
+ // Just top bar
+ PanelWindow {
+@@ -63,11 +64,12 @@
+         // Right side, items can be dragged to change order (saved in Config.bar.rightItems)
+         Component { id: statsWidget;    SystemMonitor   { anchors.fill: parent } }
+         Component { id: keyboardWidget; KeyboardLayout  { anchors.fill: parent } }
++        Component { id: batteryWidget;  BatteryIndicator { anchors.fill: parent } }
+         Component { id: volumeWidget;   VolumeIndicator { anchors.fill: parent } }
+ 
+         ReorderList {
+             id: rightItems
+-            readonly property var widths: ({ stats: 165, keyboard: 51, volume: 200 })
++            readonly property var widths: ({ stats: 165, keyboard: 51, battery: 105, volume: 200 })
+ 
+             anchors { right: parent.right; rightMargin: bar.sideMargin; top: rightDock.top; bottom: rightDock.bottom }
+             width: contentWidth
+@@ -79,13 +81,14 @@
+             delegate: ReorderSlot {
+                 id: slot
+                 required property string key
+-                width: rightItems.widths[key] ?? 60
++                width: (key === "battery" && !Battery.present) ? 0 : (rightItems.widths[key] ?? 60)
+                 height: rightItems.height
+ 
+                 Loader {
+                     anchors.fill: parent
+                     sourceComponent: slot.key === "stats" ? statsWidget
+                                    : slot.key === "keyboard" ? keyboardWidget
++                                   : slot.key === "battery" ? batteryWidget
+                                    : slot.key === "volume" ? volumeWidget : null
+                 }
+             }
+diff -u a/modules/bar/BatteryIndicator.qml b/modules/bar/BatteryIndicator.qml
+--- a/modules/bar/BatteryIndicator.qml	1970-01-01 00:00:00.000000000 +0000
++++ b/modules/bar/BatteryIndicator.qml	2026-11-28 12:30:00.287842204 +0000
+@@ -0,0 +1,61 @@
++import QtQuick
++import qs.components
++import qs.config
++import qs.services
++
++// Battery with liquid icon and percent
++HoverButton {
++    id: root
++
++    baseColor: Theme.midnext
++    visible: Battery.present
++
++    Row {
++        anchors.centerIn: parent
++        spacing: 6 * Theme.barScale
++
++        // Lightning shows only when charging
++        Text {
++            anchors.verticalCenter: parent.verticalCenter
++            width: 10 * Theme.barScale
++            horizontalAlignment: Text.AlignHCenter
++            text: "󱐋"
++            color: root.foreground
++            font.family: Theme.font
++            font.pixelSize: 15 * Theme.barScale
++            opacity: Battery.charging ? bolt.value : 0
++            scale: Battery.charging ? 1 : 0.4
++            Behavior on opacity { NumberAnimation { duration: Theme.animNormal } }
++            Behavior on scale { NumberAnimation { duration: Theme.animSlow; easing.type: Easing.OutBack } }
++
++            QtObject { id: bolt; property real value: 1 }
++            SequentialAnimation {
++                running: Battery.charging
++                loops: Animation.Infinite
++                NumberAnimation { target: bolt; property: "value"; to: 0.45; duration: 800; easing.type: Easing.InOutSine }
++                NumberAnimation { target: bolt; property: "value"; to: 1; duration: 800; easing.type: Easing.InOutSine }
++                onRunningChanged: if (!running) bolt.value = 1
++            }
++        }
++
++        LiquidBattery {
++            anchors.verticalCenter: parent.verticalCenter
++            width: 32 * Theme.barScale
++            height: 16 * Theme.barScale
++            level: Battery.level
++            charging: Battery.charging
++            low: Battery.low
++            lit: root.lit
++        }
++
++        Text {
++            anchors.verticalCenter: parent.verticalCenter
++            visible: Config.bar.batteryPercent
++            text: Battery.percent + "%"
++            color: root.foreground
++            font.family: Theme.font
++            font.pixelSize: 16 * Theme.barScale
++            Behavior on color { ColorAnimation { duration: Theme.animFast } }
++        }
++    }
++}
+diff -u a/modules/bar/SystemMonitor.qml b/modules/bar/SystemMonitor.qml
+--- a/modules/bar/SystemMonitor.qml	2026-11-28 12:30:00.256745653 +0000
++++ b/modules/bar/SystemMonitor.qml	2026-11-28 12:30:00.289401335 +0000
+@@ -4,15 +4,44 @@
+ import qs.config
+ import qs.services
+ 
+-// CPU and RAM usage, click opens btop in the terminal
++// CPU and RAM usage with thin animated bars, click opens btop in the terminal
+ HoverButton {
+     id: root
+ 
+     baseColor: Theme.midnext
+     fontSize: 16 * Theme.barScale
+-    labelOffsetY: -2 * Theme.barScale
++    labelOffsetY: -5 * Theme.barScale
+     text: Icons.cpu + " " + Math.round(SystemStats.cpuUsage * 100) + "%  "
+         + Icons.memory + " " + Math.round(SystemStats.memUsage * 100) + "%"
+ 
+     onClicked: Quickshell.execDetached([Config.general.terminal, "-e", "btop"])
++
++    component UsageBar: Rectangle {
++        id: bar
++        property real value: 0
++        height: 4 * Theme.barScale
++        radius: height / 2
++        color: root.lit ? Theme.midnext : Theme.mid
++        Behavior on color { ColorAnimation { duration: Theme.animFast } }
++
++        Rectangle {
++            anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
++            width: parent.width * Math.max(0, Math.min(1, bar.value))
++            radius: parent.radius
++            color: bar.value > 0.85 ? Theme.red : (root.lit ? Theme.background : Theme.primary)
++            Behavior on width { NumberAnimation { duration: 700; easing.type: Easing.OutCubic } }
++            Behavior on color { ColorAnimation { duration: Theme.animNormal } }
++        }
++    }
++
++    UsageBar {
++        value: SystemStats.cpuUsage
++        anchors { left: parent.left; leftMargin: 10; bottom: parent.bottom; bottomMargin: 5 * Theme.barScale }
++        width: (parent.width - 28) / 2
++    }
++    UsageBar {
++        value: SystemStats.memUsage
++        anchors { right: parent.right; rightMargin: 10; bottom: parent.bottom; bottomMargin: 5 * Theme.barScale }
++        width: (parent.width - 28) / 2
++    }
+ }
+diff -u a/modules/dock/Dock.qml b/modules/dock/Dock.qml
+--- a/modules/dock/Dock.qml	2026-11-28 12:30:00.256519143 +0000
++++ b/modules/dock/Dock.qml	2026-11-28 12:30:00.290044039 +0000
+@@ -123,6 +123,7 @@
+                                     acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                     onClicked: mouse => {
+                                         if (mouse.button === Qt.LeftButton) {
++                                            pinnedIcon.bounce()
+                                             Quickshell.execDetached([pinnedSlot.key])
+                                         } else if (mouse.button === Qt.RightButton) {
+                                             const t = UiState.dockMenuTarget
+diff -u a/modules/dock/DockIcon.qml b/modules/dock/DockIcon.qml
+--- a/modules/dock/DockIcon.qml	2026-11-28 12:30:00.256513284 +0000
++++ b/modules/dock/DockIcon.qml	2026-11-28 12:30:00.289912268 +0000
+@@ -9,6 +9,16 @@
+     property bool focused: false
+     property alias acceptedButtons: mouse.acceptedButtons
+     readonly property bool hovered: mouse.containsMouse
++    readonly property bool pressed: mouse.pressed
++    property real bounceY: 0
++
++    // Little jump, for example after launching an app
++    function bounce() { bounceAnim.restart() }
++    SequentialAnimation {
++        id: bounceAnim
++        NumberAnimation { target: root; property: "bounceY"; to: root.cell * 0.32; duration: 140; easing.type: Easing.OutQuad }
++        NumberAnimation { target: root; property: "bounceY"; to: 0; duration: 420; easing.type: Easing.OutBounce }
++    }
+     signal clicked(var mouse)
+ 
+     readonly property real cell: Theme.dockCell
+@@ -28,6 +38,7 @@
+         width: root.cell
+         height: root.cell
+         anchors.centerIn: parent
++        transform: Translate { y: -root.bounceY }
+         // Focus circle
+         Rectangle {
+             id: circle
+@@ -52,7 +63,7 @@
+             fillMode: Image.PreserveAspectFit
+             asynchronous: true
+             sourceSize: Qt.size(128, 128)
+-            scale: root.hovered ? root.iconHoverScale : root.iconScale
++            scale: root.pressed ? root.iconScale * 0.86 : (root.hovered ? root.iconHoverScale : root.iconScale)
+             visible: status === Image.Ready
+ 
+             Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+diff -u a/modules/settings/pages/BarPage.qml b/modules/settings/pages/BarPage.qml
+--- a/modules/settings/pages/BarPage.qml	2026-11-28 12:30:00.256883540 +0000
++++ b/modules/settings/pages/BarPage.qml	2026-11-28 12:30:00.289328693 +0000
+@@ -16,6 +16,11 @@
+             }
+         }
+         SettingsRow {
++            label: "Battery percent"
++            description: "Show the number next to the battery icon"
++            SettingsSwitch { checked: Config.bar.batteryPercent; onToggled: v => Config.bar.batteryPercent = v }
++        }
++        SettingsRow {
+             label: "Clock format"
+             description: "Qt format: hh:mm:ss, MMMM dd, ddd, yyyy"
+             SettingsTextField { value: Config.bar.clockFormat; onEdited: v => Config.bar.clockFormat = v }
+@@ -39,6 +44,7 @@
+             readonly property var names: ({
+                 stats: "System monitor",
+                 keyboard: "Keyboard layout",
++                battery: "Battery",
+                 volume: "Volume"
+             })
+ 
+diff -u a/services/Battery.qml b/services/Battery.qml
+--- a/services/Battery.qml	1970-01-01 00:00:00.000000000 +0000
++++ b/services/Battery.qml	2026-11-28 12:30:00.287800646 +0000
+@@ -0,0 +1,15 @@
++pragma Singleton
++import QtQuick
++import Quickshell
++import Quickshell.Services.UPower
++
++// Laptop battery from upower (the upower daemon must be running)
++Singleton {
++    readonly property var device: UPower.displayDevice
++    readonly property bool present: !!device && device.isPresent
++    readonly property real level: present ? Math.max(0, Math.min(1, device.percentage)) : 0   // 0..1
++    readonly property int percent: Math.round(level * 100)
++    readonly property bool charging: present && device.state === UPowerDeviceState.Charging
++    readonly property bool full: present && device.state === UPowerDeviceState.FullyCharged
++    readonly property bool low: present && !charging && !full && percent <= 15
++}

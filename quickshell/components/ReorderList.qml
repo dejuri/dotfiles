@@ -25,6 +25,24 @@ ListView {
         const want = root.keys ?? []
         const have = current()
         if (want.length === have.length && want.every((k, i) => k === have[i])) return
+
+        // One item added or removed: change only that one, so it can be animated
+        if (want.length === have.length + 1) {
+            let i = 0
+            while (i < have.length && have[i] === want[i]) i++
+            if (want.slice(i + 1).every((k, j) => k === have[i + j])) {
+                store.insert(i, { key: want[i] })
+                return
+            }
+        } else if (have.length === want.length + 1) {
+            let i = 0
+            while (i < want.length && have[i] === want[i]) i++
+            if (have.slice(i + 1).every((k, j) => k === want[i + j])) {
+                store.remove(i)
+                return
+            }
+        }
+
         store.clear()
         want.forEach(k => store.append({ key: k }))
     }
@@ -46,4 +64,17 @@ ListView {
 
     move: Transition { NumberAnimation { properties: "x,y"; duration: 150; easing.type: Easing.OutCubic } }
     displaced: Transition { NumberAnimation { properties: "x,y"; duration: 150; easing.type: Easing.OutCubic } }
+
+    add: Transition {
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 220 }
+            NumberAnimation { property: "scale"; from: 0.5; to: 1; duration: 280; easing.type: Easing.OutBack }
+        }
+    }
+    remove: Transition {
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; to: 0; duration: 160 }
+            NumberAnimation { property: "scale"; to: 0.5; duration: 180; easing.type: Easing.InCubic }
+        }
+    }
 }

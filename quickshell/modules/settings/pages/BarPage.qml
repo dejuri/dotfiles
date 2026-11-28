@@ -16,6 +16,11 @@ SettingsPage {
             }
         }
         SettingsRow {
+            label: "Battery percent"
+            description: "Show the number next to the battery icon"
+            SettingsSwitch { checked: Config.bar.batteryPercent; onToggled: v => Config.bar.batteryPercent = v }
+        }
+        SettingsRow {
             label: "Clock format"
             description: "Qt format: hh:mm:ss, MMMM dd, ddd, yyyy"
             SettingsTextField { value: Config.bar.clockFormat; onEdited: v => Config.bar.clockFormat = v }
@@ -39,6 +44,7 @@ SettingsPage {
             readonly property var names: ({
                 stats: "System monitor",
                 keyboard: "Keyboard layout",
+                battery: "Battery",
                 volume: "Volume"
             })
 

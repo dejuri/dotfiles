@@ -7,7 +7,6 @@ import Quickshell.Io
 Singleton {
     id: root
 
-
     property QtObject appearance: QtObject {
         property string wallpaper: "my-forest.jpg"
         property int cornerRadius: 28
@@ -30,7 +29,8 @@ Singleton {
         property bool desktopClock: true
         property bool darkClock: false
         // Order of the widgets on the right side of the bar (left to right)
-        property var rightItems: ["stats", "keyboard", "volume"]
+        property var rightItems: ["stats", "keyboard", "battery", "volume"]
+        property bool batteryPercent: true
     }
 
     property QtObject dock: QtObject {
@@ -73,7 +73,8 @@ Singleton {
                 clockFormat: bar.clockFormat,
                 desktopClock: bar.desktopClock,
                 darkClock: bar.darkClock,
-                rightItems: bar.rightItems
+                rightItems: bar.rightItems,
+                batteryPercent: bar.batteryPercent
             },
             dock: {
                 enabled: dock.enabled,
@@ -110,6 +111,20 @@ Singleton {
         }
     }
 
+    // Old settings.json may not know about newer bar widgets
+    function addMissingBarItems() {
+        const known = ["stats", "keyboard", "battery", "volume"]
+        const have = bar.rightItems.filter(k => known.includes(k))
+        const missing = known.filter(k => !have.includes(k))
+        if (missing.length === 0 && have.length === bar.rightItems.length) return
+        const vol = have.indexOf("volume")
+        if (missing.includes("battery") && vol !== -1) {
+            have.splice(vol, 0, "battery")
+            missing.splice(missing.indexOf("battery"), 1)
+        }
+        bar.rightItems = [...have, ...missing]
+    }
+
     Timer {
         id: writeDebounce
         interval: 200
@@ -133,6 +148,7 @@ Singleton {
             } catch (e) {
                 console.warn("Config: bad settings.json:", e)
             }
+            root.addMissingBarItems()
             root.lastSaved = root.serialized
         }
 

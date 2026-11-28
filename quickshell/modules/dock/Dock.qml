@@ -123,6 +123,7 @@ Scope {
                                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                                     onClicked: mouse => {
                                         if (mouse.button === Qt.LeftButton) {
+                                            pinnedIcon.bounce()
                                             Quickshell.execDetached([pinnedSlot.key])
                                         } else if (mouse.button === Qt.RightButton) {
                                             const t = UiState.dockMenuTarget

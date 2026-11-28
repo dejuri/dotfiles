@@ -9,6 +9,16 @@ Item {
     property bool focused: false
     property alias acceptedButtons: mouse.acceptedButtons
     readonly property bool hovered: mouse.containsMouse
+    readonly property bool pressed: mouse.pressed
+    property real bounceY: 0
+
+    // Little jump, for example after launching an app
+    function bounce() { bounceAnim.restart() }
+    SequentialAnimation {
+        id: bounceAnim
+        NumberAnimation { target: root; property: "bounceY"; to: root.cell * 0.32; duration: 140; easing.type: Easing.OutQuad }
+        NumberAnimation { target: root; property: "bounceY"; to: 0; duration: 420; easing.type: Easing.OutBounce }
+    }
     signal clicked(var mouse)
 
     readonly property real cell: Theme.dockCell
@@ -28,6 +38,7 @@ Item {
         width: root.cell
         height: root.cell
         anchors.centerIn: parent
+        transform: Translate { y: -root.bounceY }
         // Focus circle
         Rectangle {
             id: circle
@@ -52,7 +63,7 @@ Item {
             fillMode: Image.PreserveAspectFit
             asynchronous: true
             sourceSize: Qt.size(128, 128)
-            scale: root.hovered ? root.iconHoverScale : root.iconScale
+            scale: root.pressed ? root.iconScale * 0.86 : (root.hovered ? root.iconHoverScale : root.iconScale)
             visible: status === Image.Ready
 
             Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
